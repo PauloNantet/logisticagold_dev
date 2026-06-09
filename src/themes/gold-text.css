@@ -1,0 +1,143 @@
+/* THEME: GOLD-TEXT (APENAS LETRAS DOURADAS) */
+body[data-theme="gold-text"] {
+  --primary: #ffc400;
+  --primary-hover: #fbf17f;
+  --primary-dark: #facb30;
+  --border-color: #e2ca2d;
+  --input-border: #d9cb0a;
+  --shadow-glow: rgba(212, 175, 55, 0.3);
+}
+
+.invoice-paper.theme-gold-text .invoice-header {
+  border-bottom: 2px solid #B8860B !important;
+}
+
+.invoice-paper.theme-gold-text .company-name,
+.invoice-paper.theme-gold-text .document-title {
+  color: #B8860B !important;
+  text-shadow: 0 0 8px rgba(184, 134, 11, 0.4);
+}
+
+.invoice-paper.theme-gold-text .box-title {
+  color: #B8860B !important;
+  text-shadow: 0 0 8px rgba(184, 134, 11, 0.4);
+}
+
+.invoice-paper.theme-gold-text .info-label,
+.invoice-paper.theme-gold-text .total-main-row .total-label,
+.invoice-paper.theme-gold-text .row-label {
+  color: #555555 !important;
+}
+
+.invoice-paper.theme-gold-text .thanks {
+  color: #B8860B !important;
+  text-shadow: 0 0 8px rgba(184, 134, 11, 0.4);
+}
+
+.invoice-paper.theme-gold-text .pix-title {
+  color: #B8860B !important;
+  text-shadow: 0 0 8px rgba(184, 134, 11, 0.4);
+}
+
+.invoice-paper.theme-gold-text .client-name,
+.invoice-paper.theme-gold-text .responsible-name {
+  color: #000000 !important;
+}
+
+.invoice-paper.theme-gold-text .item-name,
+.invoice-paper.theme-gold-text .info-value {
+  color: #555555 !important;
+}
+
+.invoice-paper.theme-gold-text .invoice-footer {
+  border-top: 2px solid #B8860B !important;
+}
+
+.invoice-paper.theme-gold-text .summary-rows {
+  border-top: 2px solid #B8860B !important;
+}
+
+.invoice-paper.theme-gold-text .total-main-row {
+  border-top: 2px solid #B8860B !important;
+}
+
+.invoice-paper.theme-gold-text .total-main-row .total-value {
+  color: #B8860B !important;
+  text-shadow: 0 0 8px rgba(184, 134, 11, 0.4);
+}
+
+.invoice-paper.theme-gold-text .invoice-table {
+  border-collapse: collapse;
+  border: 2px solid #999999;
+}
+
+.invoice-paper.theme-gold-text .invoice-table thead {
+  background-color: #ffffff !important;
+}
+
+.invoice-paper.theme-gold-text .invoice-table th {
+  color: #B8860B !important;
+  border: 2px solid #999999;
+  text-shadow: 0 0 8px rgba(184, 134, 11, 0.4);
+}
+
+.invoice-paper.theme-gold-text .invoice-table tbody {
+  background-color: #ffffff !important;
+}
+
+.invoice-paper.theme-gold-text .invoice-table td {
+  border: 2px solid #999999;
+  color: #888888 !important;
+}
+
+.invoice-paper.theme-gold-text .client-data p,
+.invoice-paper.theme-gold-text .responsible-data p {
+  color: #000000 !important;
+}
+
+.invoice-paper.theme-gold-text .pix-key,
+.invoice-paper.theme-gold-text .row-value {
+  color: #888888 !important;
+}
+
+.invoice-paper.theme-gold-text .item-desc {
+  color: #aaaaaa !important;
+}
+
+.invoice-paper.theme-gold-text .invoice-logo {
+  border-color: #B8860B !important;
+  border-width: 2px;
+  box-shadow: 0 4px 15px rgba(184, 134, 11, 0.3);
+}
+
+.invoice-paper.theme-gold-text .client-box,
+.invoice-paper.theme-gold-text .responsible-box {
+  background-color: #ffffff !important;
+  border: 2px solid #B8860B !important;
+  box-shadow: 0 2px 12px rgba(184, 134, 11, 0.15);
+}
+
+.invoice-paper.theme-gold-text .pix-box {
+  background-color: #ffffff !important;
+  border: 2px solid #B8860B !important;
+  box-shadow: 0 2px 12px rgba(184, 134, 11, 0.15);
+}
+
+.invoice-paper.theme-gold-text .obs-content {
+  background-color: #ffffff !important;
+  border: 2px solid #B8860B !important;
+  border-left-width: 6px !important;
+  color: #888888 !important;
+  box-shadow: 0 2px 12px rgba(184, 134, 11, 0.15);
+}
+
+/* Sidebar action buttons - gold theme */
+body[data-theme="gold-text"] .history-toggle {
+  border-color: var(--primary-dark) !important;
+}
+
+body[data-theme="gold-text"] .history-toggle:hover {
+  background-color: var(--primary-dark) !important;
+  color: #000000 !important;
+  border-color: var(--primary) !important;
+}

@@ -1,0 +1,132 @@
+/* THEME: LILAC */
+body[data-theme="lilac"] {
+  --primary: #d8b4fe;
+  --primary-hover: #e9d5ff;
+  --primary-dark: #c084fc;
+  --border-color: #d8b4fe;
+  --input-border: #c084fc;
+  --shadow-glow: rgba(192, 132, 252, 0.3);
+}
+
+.invoice-paper.theme-lilac .invoice-header {
+  border-bottom: 2px solid #c084fc !important;
+}
+
+.invoice-paper.theme-lilac .company-name,
+.invoice-paper.theme-lilac .document-title {
+  color: #c084fc !important;
+  text-shadow: 0 0 8px rgba(192, 132, 252, 0.4);
+}
+
+.invoice-paper.theme-lilac .box-title {
+  color: #c084fc !important;
+  text-shadow: 0 0 8px rgba(192, 132, 252, 0.4);
+}
+
+.invoice-paper.theme-lilac .info-label,
+.invoice-paper.theme-lilac .total-main-row .total-label,
+.invoice-paper.theme-lilac .row-label {
+  color: #555555 !important;
+}
+
+.invoice-paper.theme-lilac .thanks {
+  color: #c084fc !important;
+  text-shadow: 0 0 8px rgba(192, 132, 252, 0.4);
+}
+
+.invoice-paper.theme-lilac .pix-title {
+  color: #c084fc !important;
+  text-shadow: 0 0 8px rgba(192, 132, 252, 0.4);
+}
+
+.invoice-paper.theme-lilac .client-name,
+.invoice-paper.theme-lilac .responsible-name {
+  color: #000000 !important;
+}
+
+.invoice-paper.theme-lilac .item-name,
+.invoice-paper.theme-lilac .info-value {
+  color: #555555 !important;
+}
+
+.invoice-paper.theme-lilac .invoice-footer {
+  border-top: 2px solid #c084fc !important;
+}
+
+.invoice-paper.theme-lilac .summary-rows {
+  border-top: 2px solid #c084fc !important;
+}
+
+.invoice-paper.theme-lilac .total-main-row {
+  border-top: 2px solid #c084fc !important;
+}
+
+.invoice-paper.theme-lilac .total-main-row .total-value {
+  color: #c084fc !important;
+  text-shadow: 0 0 8px rgba(192, 132, 252, 0.4);
+}
+
+.invoice-paper.theme-lilac .invoice-table {
+  border-collapse: collapse;
+  border: 2px solid #999999;
+}
+
+.invoice-paper.theme-lilac .invoice-table thead {
+  background-color: #ffffff !important;
+}
+
+.invoice-paper.theme-lilac .invoice-table th {
+  color: #c084fc !important;
+  border: 2px solid #999999;
+  text-shadow: 0 0 8px rgba(192, 132, 252, 0.4);
+}
+
+.invoice-paper.theme-lilac .invoice-table tbody {
+  background-color: #ffffff !important;
+}
+
+.invoice-paper.theme-lilac .invoice-table td {
+  border: 2px solid #999999;
+  color: #888888 !important;
+}
+
+.invoice-paper.theme-lilac .client-data p,
+.invoice-paper.theme-lilac .responsible-data p {
+  color: #000000 !important;
+}
+
+.invoice-paper.theme-lilac .pix-key,
+.invoice-paper.theme-lilac .row-value {
+  color: #888888 !important;
+}
+
+.invoice-paper.theme-lilac .item-desc {
+  color: #aaaaaa !important;
+}
+
+.invoice-paper.theme-lilac .invoice-logo {
+  border-color: #c084fc !important;
+  border-width: 2px;
+  box-shadow: 0 4px 15px rgba(192, 132, 252, 0.3);
+}
+
+.invoice-paper.theme-lilac .client-box,
+.invoice-paper.theme-lilac .responsible-box {
+  background-color: #ffffff !important;
+  border: 2px solid #c084fc !important;
+  box-shadow: 0 2px 12px rgba(192, 132, 252, 0.15);
+}
+
+.invoice-paper.theme-lilac .pix-box {
+  background-color: #ffffff !important;
+  border: 2px solid #c084fc !important;
+  box-shadow: 0 2px 12px rgba(192, 132, 252, 0.15);
+}
+
+.invoice-paper.theme-lilac .obs-content {
+  background-color: #ffffff !important;
+  border: 2px solid #c084fc !important;
+  border-left-width: 6px !important;
+  color: #888888 !important;
+  box-shadow: 0 2px 12px rgba(192, 132, 252, 0.15);
+}

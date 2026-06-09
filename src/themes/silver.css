@@ -1,0 +1,132 @@
+/* THEME: SILVER */
+body[data-theme="silver"] {
+  --primary: #9ca3af;
+  --primary-hover: #d1d5db;
+  --primary-dark: #6b7280;
+  --border-color: #9ca3af;
+  --input-border: #6b7280;
+  --shadow-glow: rgba(107, 114, 128, 0.3);
+}
+
+.invoice-paper.theme-silver .invoice-header {
+  border-bottom: 2px solid #6b7280 !important;
+}
+
+.invoice-paper.theme-silver .company-name,
+.invoice-paper.theme-silver .document-title {
+  color: #6b7280 !important;
+  text-shadow: 0 0 8px rgba(107, 114, 128, 0.4);
+}
+
+.invoice-paper.theme-silver .box-title {
+  color: #6b7280 !important;
+  text-shadow: 0 0 8px rgba(107, 114, 128, 0.4);
+}
+
+.invoice-paper.theme-silver .info-label,
+.invoice-paper.theme-silver .total-main-row .total-label,
+.invoice-paper.theme-silver .row-label {
+  color: #555555 !important;
+}
+
+.invoice-paper.theme-silver .thanks {
+  color: #6b7280 !important;
+  text-shadow: 0 0 8px rgba(107, 114, 128, 0.4);
+}
+
+.invoice-paper.theme-silver .pix-title {
+  color: #6b7280 !important;
+  text-shadow: 0 0 8px rgba(107, 114, 128, 0.4);
+}
+
+.invoice-paper.theme-silver .client-name,
+.invoice-paper.theme-silver .responsible-name {
+  color: #000000 !important;
+}
+
+.invoice-paper.theme-silver .item-name,
+.invoice-paper.theme-silver .info-value {
+  color: #555555 !important;
+}
+
+.invoice-paper.theme-silver .invoice-footer {
+  border-top: 2px solid #6b7280 !important;
+}
+
+.invoice-paper.theme-silver .summary-rows {
+  border-top: 2px solid #6b7280 !important;
+}
+
+.invoice-paper.theme-silver .total-main-row {
+  border-top: 2px solid #6b7280 !important;
+}
+
+.invoice-paper.theme-silver .total-main-row .total-value {
+  color: #6b7280 !important;
+  text-shadow: 0 0 8px rgba(107, 114, 128, 0.4);
+}
+
+.invoice-paper.theme-silver .invoice-table {
+  border-collapse: collapse;
+  border: 2px solid #999999;
+}
+
+.invoice-paper.theme-silver .invoice-table thead {
+  background-color: #ffffff !important;
+}
+
+.invoice-paper.theme-silver .invoice-table th {
+  color: #6b7280 !important;
+  border: 2px solid #999999;
+  text-shadow: 0 0 8px rgba(107, 114, 128, 0.4);
+}
+
+.invoice-paper.theme-silver .invoice-table tbody {
+  background-color: #ffffff !important;
+}
+
+.invoice-paper.theme-silver .invoice-table td {
+  border: 2px solid #999999;
+  color: #888888 !important;
+}
+
+.invoice-paper.theme-silver .client-data p,
+.invoice-paper.theme-silver .responsible-data p {
+  color: #000000 !important;
+}
+
+.invoice-paper.theme-silver .pix-key,
+.invoice-paper.theme-silver .row-value {
+  color: #888888 !important;
+}
+
+.invoice-paper.theme-silver .item-desc {
+  color: #aaaaaa !important;
+}
+
+.invoice-paper.theme-silver .invoice-logo {
+  border-color: #6b7280 !important;
+  border-width: 2px;
+  box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
+}
+
+.invoice-paper.theme-silver .client-box,
+.invoice-paper.theme-silver .responsible-box {
+  background-color: #ffffff !important;
+  border: 2px solid #6b7280 !important;
+  box-shadow: 0 2px 12px rgba(107, 114, 128, 0.15);
+}
+
+.invoice-paper.theme-silver .pix-box {
+  background-color: #ffffff !important;
+  border: 2px solid #6b7280 !important;
+  box-shadow: 0 2px 12px rgba(107, 114, 128, 0.15);
+}
+
+.invoice-paper.theme-silver .obs-content {
+  background-color: #ffffff !important;
+  border: 2px solid #6b7280 !important;
+  border-left-width: 6px !important;
+  color: #888888 !important;
+  box-shadow: 0 2px 12px rgba(107, 114, 128, 0.15);
+}
