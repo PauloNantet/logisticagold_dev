@@ -433,28 +433,8 @@ export default function MapaServicoForm({
       setEntries(prev => prev.filter(e => e.id !== id));
       if (editingId === id) {
         setEditingId(null);
-        setShowForm(false);
-        setEntry({
-          fornecedor: "",
-          numero: "",
-          data: "",
-          hora: "",
-          voo: "",
-          servico: "",
-          nome_guia: "",
-          tel_guia: "",
-          nome_pax: "",
-          pax: "",
-          file_evento: "",
-          cliente: { nome: "", documento: "", email: "", endereco: "" },
-          observacao: "",
-          veiculo: "",
-          placa: "",
-          motorista: "",
-          contato_motorista: "",
-          valor_pagar: "",
-          valor_receber: "",
-        });
+        // Não fechamos o form nem resetamos o entry aqui para evitar pulos de scroll
+        // O usuário pode terminar o que estava fazendo ou o form ficará em estado de "Novo"
       }
     } catch (err) {
       console.error("Erro ao remover agendamento:", err);
