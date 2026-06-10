@@ -655,28 +655,41 @@ export default function MapaServicoForm({
                 <div style={{ flex: 1 }}>
                   <div className="input-group">
                     <label className="input-label">Lucro</label>
-                    <input
-                      type="text"
-                      readOnly
-                      className="custom-input"
-                      style={{
+                    <div 
+                      className="custom-input" 
+                      style={{ 
+                        display: "flex", 
+                        alignItems: "center", 
+                        justifyContent: "space-between",
+                        padding: "0 12px",
+                        height: "40px",
+                        backgroundColor: "var(--bg-input)",
+                        border: "1px solid var(--input-border)",
+                        borderRadius: "8px",
+                        fontSize: "14px",
                         fontWeight: 700,
+                        boxSizing: "border-box"
+                      }}
+                    >
+                      <span style={{ color: "var(--text-secondary)", fontSize: "12px" }}>R$</span>
+                      <span style={{ 
                         color: (() => {
                           const pagar = parseFloat((entry.valor_pagar || "0").replace(/\./g, "").replace(",", ".")) || 0;
                           const receber = parseFloat((entry.valor_receber || "0").replace(/\./g, "").replace(",", ".")) || 0;
                           const diff = receber - pagar;
                           return diff >= 0 ? "#22c55e" : "#ef4444";
                         })()
-                      }}
-                      value={(() => {
-                        const pagar = parseFloat((entry.valor_pagar || "0").replace(/\./g, "").replace(",", ".")) || 0;
-                        const receber = parseFloat((entry.valor_receber || "0").replace(/\./g, "").replace(",", ".")) || 0;
-                        const diff = receber - pagar;
-                        const abs = Math.abs(diff);
-                        const formatted = abs.toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-                        return diff >= 0 ? `R$ + ${formatted}` : `R$ - ${formatted}`;
-                      })()}
-                    />
+                      }}>
+                        {(() => {
+                          const pagar = parseFloat((entry.valor_pagar || "0").replace(/\./g, "").replace(",", ".")) || 0;
+                          const receber = parseFloat((entry.valor_receber || "0").replace(/\./g, "").replace(",", ".")) || 0;
+                          const diff = receber - pagar;
+                          const abs = Math.abs(diff);
+                          const formatted = abs.toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                          return diff >= 0 ? `+ ${formatted}` : `- ${formatted}`;
+                        })()}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
