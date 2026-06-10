@@ -44,8 +44,8 @@ const INITIAL_DATA_TEMPLATE = {
   cliente: { nome: "", documento: "", email: "", endereco: "" },
   responsavel: { nome: "", telefone: "", telefoneCustom: false, email: "" },
   itens: [{ produto: "", descricao: "", valor: "", quantidade: "1" }],
-  desconto: { tipo: "porcentagem", valor: "" },
-  imposto: { tipo: "porcentagem", valor: "" },
+  desconto: { tipo: "fixed", valor: "" },
+  imposto: { tipo: "fixed", valor: "" },
   observacoes: "",
 };
 
@@ -68,8 +68,8 @@ const INITIAL_ORCAMENTO_TEMPLATE = {
   cliente: { nome: "", documento: "", email: "", endereco: "" },
   responsavel: { nome: "", telefone: "", telefoneCustom: false, email: "" },
   itens: [{ descricao: "", valor: "", quantidade: "1" }],
-  desconto: { tipo: "porcentagem", valor: "" },
-  imposto: { tipo: "porcentagem", valor: "" },
+  desconto: { tipo: "fixed", valor: "" },
+  imposto: { tipo: "fixed", valor: "" },
   observacoes: "",
 };
 
