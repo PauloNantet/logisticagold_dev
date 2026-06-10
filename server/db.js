@@ -132,6 +132,18 @@ async function initDB() {
         created_at TEXT DEFAULT NOW()
       );
     `);
+
+    const tables = [
+      'users', 'clients', 'services', 'history', 'images',
+      'settings', 'vehicles', 'service_orders', 'mapas',
+      'drivers', 'agenda_servicos'
+    ];
+    for (const table of tables) {
+      await client.query(`
+        SELECT setval(pg_get_serial_sequence('${table}', 'id'), COALESCE((SELECT MAX(id) FROM ${table}), 1));
+      `);
+    }
+
     console.log("Banco de dados inicializado com sucesso.");
   } finally {
     client.release();
