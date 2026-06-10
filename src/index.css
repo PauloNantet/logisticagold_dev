@@ -943,6 +943,7 @@ td {
   border-bottom: 1px solid var(--border-color) !important;
   color: var(--primary) !important;
   vertical-align: middle;
+  font-size: 10px;
 }
 
 .spreadsheet-table th,
