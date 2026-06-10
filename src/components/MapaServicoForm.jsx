@@ -606,7 +606,7 @@ export default function MapaServicoForm({
               </div>
             </div>
               <div className="form-row-3">
-                <div className="relative-container" style={{ flex: 1 }}>
+                <div className="relative-container" style={{ flex: 1.2 }}>
                   <div className="input-group">
                     <label className="input-label">Veículo</label>
                     <input type="text" value={entry.veiculo} onChange={(e) => handleVehicleChange(e.target.value)} onKeyDown={handleVehicleKeyDown} autoComplete="off" className="custom-input" placeholder="Digite para buscar..." />
@@ -622,8 +622,8 @@ export default function MapaServicoForm({
                     </ul>
                   )}
                 </div>
-                <div style={{ flex: 1 }}><InputField label="Placa" value={entry.placa} onChange={(e) => updateEntry("placa", e.target.value.toUpperCase())} placeholder="Ex: ABC-1234" /></div>
-                <div className="relative-container" style={{ flex: 1 }}>
+                <div style={{ flex: 0.8 }}><InputField label="Placa" value={entry.placa} onChange={(e) => updateEntry("placa", e.target.value.toUpperCase())} placeholder="Ex: ABC-1234" /></div>
+                <div className="relative-container" style={{ flex: 1.2 }}>
                   <div className="input-group">
                     <label className="input-label">Motorista</label>
                     <input type="text" value={entry.motorista} onChange={(e) => handleMotoristaChange(e.target.value)} onKeyDown={handleDriverKeyDown} autoComplete="off" className="custom-input" placeholder="Digite para buscar..." />
@@ -639,20 +639,20 @@ export default function MapaServicoForm({
                     </ul>
                   )}
                 </div>
-                <div style={{ flex: 1 }}><InputField label="Contato Motorista" value={entry.contato_motorista} onKeyDown={(e) => handlePhoneKeyDown(e, (v) => updateEntry("contato_motorista", v))} onInput={(e) => handlePhoneInput(e, (v) => updateEntry("contato_motorista", v))} placeholder="Ex: 21 99292-1544 / 21 98985-5252" /></div>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1.2 }}><InputField label="Contato Motorista" value={entry.contato_motorista} onKeyDown={(e) => handlePhoneKeyDown(e, (v) => updateEntry("contato_motorista", v))} onInput={(e) => handlePhoneInput(e, (v) => updateEntry("contato_motorista", v))} placeholder="Ex: 21 99292-1544 / 21 98985-5252" /></div>
+                <div style={{ flex: 0.6 }}>
                   <div className="input-group">
-                    <label className="input-label">A Pagar Fornecedor</label>
-                    <input type="text" value={entry.valor_pagar} onChange={(e) => updateEntry("valor_pagar", formatCurrency(e.target.value))} placeholder="R$ 1.752,45" className="custom-input" />
+                    <label className="input-label">A Pagar</label>
+                    <input type="text" value={entry.valor_pagar} onChange={(e) => updateEntry("valor_pagar", formatCurrency(e.target.value))} placeholder="R$ 0,00" className="custom-input" />
                   </div>
                 </div>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 0.6 }}>
                   <div className="input-group">
-                    <label className="input-label">A Receber Cliente</label>
-                    <input type="text" value={entry.valor_receber} onChange={(e) => updateEntry("valor_receber", formatCurrency(e.target.value))} placeholder="R$ 1.752,45" className="custom-input" />
+                    <label className="input-label">A Receber</label>
+                    <input type="text" value={entry.valor_receber} onChange={(e) => updateEntry("valor_receber", formatCurrency(e.target.value))} placeholder="R$ 0,00" className="custom-input" />
                   </div>
                 </div>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 0.6 }}>
                   <div className="input-group">
                     <label className="input-label">Lucro</label>
                     <div 
