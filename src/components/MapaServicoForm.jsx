@@ -655,21 +655,28 @@ export default function MapaServicoForm({
                 <div style={{ flex: 1 }}>
                   <div className="input-group">
                     <label className="input-label">Lucro</label>
-                    <div className="custom-input" style={{ background: "var(--bg-input)", display: "flex", alignItems: "center", fontWeight: 700, color: (() => {
-                      const pagar = parseFloat((entry.valor_pagar || "0").replace(/\./g, "").replace(",", ".")) || 0;
-                      const receber = parseFloat((entry.valor_receber || "0").replace(/\./g, "").replace(",", ".")) || 0;
-                      const diff = receber - pagar;
-                      return diff >= 0 ? "#22c55e" : "#ef4444";
-                    })() }}>
-                      R$ {(() => {
+                    <input
+                      type="text"
+                      readOnly
+                      className="custom-input"
+                      style={{
+                        fontWeight: 700,
+                        color: (() => {
+                          const pagar = parseFloat((entry.valor_pagar || "0").replace(/\./g, "").replace(",", ".")) || 0;
+                          const receber = parseFloat((entry.valor_receber || "0").replace(/\./g, "").replace(",", ".")) || 0;
+                          const diff = receber - pagar;
+                          return diff >= 0 ? "#22c55e" : "#ef4444";
+                        })()
+                      }}
+                      value={(() => {
                         const pagar = parseFloat((entry.valor_pagar || "0").replace(/\./g, "").replace(",", ".")) || 0;
                         const receber = parseFloat((entry.valor_receber || "0").replace(/\./g, "").replace(",", ".")) || 0;
                         const diff = receber - pagar;
                         const abs = Math.abs(diff);
                         const formatted = abs.toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-                        return diff >= 0 ? `+ ${formatted}` : `- ${formatted}`;
+                        return diff >= 0 ? `R$ + ${formatted}` : `R$ - ${formatted}`;
                       })()}
-                    </div>
+                    />
                   </div>
                 </div>
               </div>
