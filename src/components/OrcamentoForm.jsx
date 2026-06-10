@@ -58,6 +58,7 @@ export default function OrcamentoForm({ data, clients, total, descontoCalculado,
       { key: "responsavelNome", ref: responsavelNomeRef },
       { key: "responsavelTelefone", ref: responsavelTelefoneRef },
       { key: "dataEmissao", ref: dataEmissaoRef },
+      { key: "orcamentoValidade", ref: validadeRef },
       { key: "itens", ref: itensSectionRef },
     ];
     for (const { key, ref } of fieldRefMap) {
@@ -304,8 +305,10 @@ export default function OrcamentoForm({ data, clients, total, descontoCalculado,
               value={data.orcamento.validade} 
               onChange={(e) => {
                 update("orcamento", "validade", e.target.value);
+                if (fieldErrors.orcamentoValidade) clearFieldError("orcamentoValidade");
               }}
               placeholder="Ex: 30 DIAS, em análise..." 
+              error={fieldErrors.orcamentoValidade}
               inputRef={validadeRef}
             />
           </div>

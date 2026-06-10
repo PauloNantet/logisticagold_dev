@@ -64,7 +64,7 @@ const INITIAL_OS_TEMPLATE = {
 };
 
 const INITIAL_ORCAMENTO_TEMPLATE = {
-  orcamento: { numero: "", data: getToday(), validade: "30" },
+  orcamento: { numero: "", data: getToday(), validade: "" },
   cliente: { nome: "", documento: "", email: "", endereco: "" },
   responsavel: { nome: "", telefone: "", telefoneCustom: false, email: "" },
   itens: [{ descricao: "", valor: "", quantidade: "1" }],
@@ -155,7 +155,7 @@ function AuthenticatedApp({ onLogout }) {
   const [orcamentoFieldErrors, setOrcamentoFieldErrors] = useState({
     clienteNome: false, clienteDocumento: false, clienteEmail: false, clienteEndereco: false,
     responsavelNome: false, responsavelTelefone: false,
-    dataEmissao: false, itens: false, orcamentoNumero: false,
+    dataEmissao: false, itens: false, orcamentoNumero: false, orcamentoValidade: false,
   });
   const [orcamentoScrollToError, setOrcamentoScrollToError] = useState(0);
 
@@ -819,6 +819,7 @@ function AuthenticatedApp({ onLogout }) {
       dataEmissao: !orcamentoData.orcamento.data,
       itens: !orcamentoData.itens.every(item => item.descricao.trim() && item.valor && item.quantidade),
       orcamentoNumero: !orcamentoData.orcamento.numero.trim(),
+      orcamentoValidade: !orcamentoData.orcamento.validade.trim(),
     };
     setOrcamentoFieldErrors(errors);
     if (Object.values(errors).some(v => v)) {
