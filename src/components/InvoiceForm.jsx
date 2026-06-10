@@ -39,6 +39,17 @@ export default function InvoiceForm({ data, clients, services, total, descontoCa
   const dataVencimentoRef = useRef(null);
   const itensSectionRef = useRef(null);
   const faturaNumeroRef = useRef(null);
+  const observacoesRef = useRef(null);
+
+  const autoResize = (el) => {
+    if (!el) return;
+    el.style.height = "40px";
+    el.style.height = el.scrollHeight + "px";
+  };
+
+  useEffect(() => {
+    autoResize(observacoesRef.current);
+  }, [data.observacoes]);
 
   useEffect(() => {
     if (!scrollToError) return;
@@ -662,8 +673,10 @@ export default function InvoiceForm({ data, clients, services, total, descontoCa
           <div className="full-width">
             <label className="input-label">Observações / Termos</label>
             <textarea 
+              ref={observacoesRef}
               value={data.observacoes} 
               onChange={(e) => update("", "observacoes", e.target.value)}
+              onInput={() => autoResize(observacoesRef.current)}
               placeholder="Ex: Pagamento em 3x sem juros..."
             />
           </div>

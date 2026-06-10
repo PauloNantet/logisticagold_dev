@@ -70,7 +70,7 @@ export default function OrcamentoForm({ data, clients, total, descontoCalculado,
   }, [scrollToError]);
 
   useEffect(() => {
-    if (fieldErrors.itens && data.itens.every(item => item.produto.trim() && item.descricao.trim() && item.valor && item.quantidade)) {
+    if (fieldErrors.itens && data.itens.every(item => item.descricao.trim() && item.valor && item.quantidade)) {
       clearFieldError("itens");
     }
   }, [data.itens]);

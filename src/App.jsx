@@ -67,7 +67,7 @@ const INITIAL_ORCAMENTO_TEMPLATE = {
   orcamento: { numero: "", data: getToday(), validade: "30" },
   cliente: { nome: "", documento: "", email: "", endereco: "" },
   responsavel: { nome: "", telefone: "", telefoneCustom: false, email: "" },
-  itens: [{ produto: "", descricao: "", valor: "", quantidade: "1" }],
+  itens: [{ descricao: "", valor: "", quantidade: "1" }],
   desconto: { tipo: "porcentagem", valor: "" },
   imposto: { tipo: "porcentagem", valor: "" },
   observacoes: "",
@@ -793,7 +793,7 @@ function AuthenticatedApp({ onLogout }) {
   const orcamentoAddItem = () => {
     setOrcamentoData((prev) => ({
       ...prev,
-      itens: [...prev.itens, { produto: "", descricao: "", valor: "", quantidade: "1" }],
+      itens: [...prev.itens, { descricao: "", valor: "", quantidade: "1" }],
     }));
   };
 
@@ -803,7 +803,7 @@ function AuthenticatedApp({ onLogout }) {
       if (novosItens.length > 1) {
         novosItens.splice(index, 1);
       } else {
-        novosItens[0] = { produto: "", descricao: "", valor: "", quantidade: "1" };
+        novosItens[0] = { descricao: "", valor: "", quantidade: "1" };
       }
       return { ...prev, itens: novosItens };
     });
@@ -819,7 +819,7 @@ function AuthenticatedApp({ onLogout }) {
       responsavelNome: false,
       responsavelTelefone: false,
       dataEmissao: !orcamentoData.orcamento.data,
-      itens: !orcamentoData.itens.every(item => item.produto.trim() && item.descricao.trim() && item.valor && item.quantidade),
+      itens: !orcamentoData.itens.every(item => item.descricao.trim() && item.valor && item.quantidade),
       orcamentoNumero: !orcamentoData.orcamento.numero.trim(),
     };
     setOrcamentoFieldErrors(errors);

@@ -2993,12 +2993,12 @@ select.search-input option {
 .invoice-form-container textarea,
 .invoice-form-container select {
   min-height: 40px !important;
-  padding-top: 8px !important;
-  padding-bottom: 8px !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
   box-sizing: border-box;
   font-family: inherit;
   font-size: inherit;
-  line-height: 1;
+  line-height: 1.4;
   resize: none;
   overflow-wrap: break-word;
   white-space: pre-wrap;
@@ -3013,6 +3013,7 @@ select.search-input option {
 
 .invoice-form-container textarea {
   overflow: hidden;
+  display: block;
 }
 
 /* Mapa entries table */
