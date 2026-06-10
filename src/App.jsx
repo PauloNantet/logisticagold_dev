@@ -423,30 +423,28 @@ function AuthenticatedApp({ onLogout }) {
       console.error("Erro ao excluir histórico:", err);
     }
   };
-
   const restoreHistoryItem = async (fullData, isViewing = true) => {
     if (isViewing) {
       setData({ ...fullData, tema: fullData.tema || data.tema || "white" });
       setIsLocked(true);
       setPreview(true);
     } else {
-      const nextNum = getNextInvoiceNumber(history);
       setData({
         ...fullData,
-        fatura: { ...fullData.fatura, numero: nextNum, data: getToday(), vencimento: "" },
         tema: data.tema
       });
       setIsLocked(false);
       setPreview(false);
     }
     setShowHistory(false);
+
     if (fullData.pagamento?.pix) {
       try {
         const sub = fullData.itens.reduce((acc, item) => acc + (parseFloat(item.valor) * parseFloat(item.quantidade)), 0);
-        const descVal = parseFloat((fullData.desconto?.valor || "").replace(",", ".")) || 0;
-        const desc = fullData.desconto?.tipo === "porcentagem" ? sub * (descVal / 100) : descVal;
-        const impVal = parseFloat((fullData.imposto?.valor || "").replace(",", ".")) || 0;
-        const imp = fullData.imposto?.tipo === "porcentagem" ? sub * (impVal / 100) : impVal;
+        const rawDesc = parseInt((fullData.desconto?.valor || "").toString().replace(/\D/g, ""), 10) || 0;
+        const desc = fullData.desconto?.tipo === "porcentagem" ? sub * (rawDesc / 10000) : rawDesc / 100;
+        const rawImp = parseInt((fullData.imposto?.valor || "").toString().replace(/\D/g, ""), 10) || 0;
+        const imp = fullData.imposto?.tipo === "porcentagem" ? sub * (rawImp / 10000) : rawImp / 100;
         const finalVal = sub - desc + imp;
         const url = await generateQrCode(fullData.pagamento, finalVal);
         setQrCode(url);
