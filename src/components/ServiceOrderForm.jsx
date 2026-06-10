@@ -902,7 +902,11 @@ const SimularModal = ({ clients, vehicles, drivers = [], simulations, setSimulat
                       <th>Veículo</th>
                       <th>Placa</th>
                       <th>Motorista/Contato</th>
-                      <th style={{ textAlign: "center" }}>Ações</th>
+                    <th style={{ textAlign: "center" }}>
+                      {selectMode ? (
+                        <input type="checkbox" checked={selectedIds.size === sortedEntries.length && sortedEntries.length > 0} onChange={toggleSelectAll} style={{ cursor: "pointer", width: 16, height: 16 }} />
+                      ) : "Ações"}
+                    </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -958,25 +962,31 @@ const SimularModal = ({ clients, vehicles, drivers = [], simulations, setSimulat
 
 const SortHeader = ({ label, sortKey, style, sortConfig, onSort }) => (
   <th onClick={() => onSort(sortKey)} style={{ cursor: "pointer", userSelect: "none", ...style }}>
-    {label} {sortConfig.key === sortKey ? (sortConfig.direction === "asc" ? " ▲" : " ▼") : ""}
+    {label}
   </th>
 );
 
-export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers = [], restoredEntries, onClearRestored, onSaveSimulacao }) {
+export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers = [], restoredEntries, onClearRestored, onSaveSimulacao, onPreviewOS, onDownloadOS, onBulkDownloadOS }) {
   const [entries, setEntries] = useState([]);
   const [simPreview, setSimPreview] = useState(false);
   const [simPreviewEntries, setSimPreviewEntries] = useState([]);
   const [fornecedorFilter, setFornecedorFilter] = useState([]);
   const [fornecedorError, setFornecedorError] = useState(false);
-  const [numeroFilter, setNumeroFilter] = useState([]);
   const [dataFilter, setDataFilter] = useState([]);
+  const [fileEventoFilter, setFileEventoFilter] = useState([]);
+  const [motoristaFilter, setMotoristaFilter] = useState([]);
   const [showFornecedorPopup, setShowFornecedorPopup] = useState(false);
-  const [showNumeroPopup, setShowNumeroPopup] = useState(false);
   const [showDatePopup, setShowDatePopup] = useState(false);
+  const [showFileEventoPopup, setShowFileEventoPopup] = useState(false);
+  const [showMotoristaPopup, setShowMotoristaPopup] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [showSimularModal, setShowSimularModal] = useState(false);
   const [showManualOSModal, setShowManualOSModal] = useState(false);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [selectBtnHover, setSelectBtnHover] = useState(false);
+  const [todosBtnHover, setTodosBtnHover] = useState(false);
   const [simulations, setSimulations] = useState(() => {
     try {
       const saved = localStorage.getItem("fatura_simulacoes");
@@ -991,6 +1001,34 @@ export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers 
       localStorage.setItem("fatura_simulacoes", JSON.stringify(simulations));
     } catch {}
   }, [simulations]);
+
+  const toggleSelectMode = () => {
+    setSelectMode(prev => !prev);
+    setSelectedIds(new Set());
+  };
+
+  const toggleSelectEntry = (idx) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === sortedEntries.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(sortedEntries.map((_, i) => i)));
+    }
+  };
+
+  const handleBulkDownload = () => {
+    const selected = [...selectedIds].map(i => sortedEntries[i]).filter(Boolean);
+    if (selected.length === 0) return;
+    if (onBulkDownloadOS) onBulkDownloadOS(selected);
+  };
 
   useEffect(() => {
     api.get("/api/agenda").then(data => {
@@ -1023,11 +1061,13 @@ export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers 
   const filterEntries = (entries, exclude) => entries.filter(e => {
     const matchesFornecedor = exclude === "fornecedor" || fornecedorFilter.length === 0 ||
       fornecedorFilter.some(f => (e.fornecedor || "").toLowerCase() === f.toLowerCase());
-    const matchesNumero = exclude === "numero" || numeroFilter.length === 0 ||
-      numeroFilter.some(n => (e.numero || "").toLowerCase() === n.toLowerCase());
     const matchesData = exclude === "data" || dataFilter.length === 0 ||
       dataFilter.some(d => (e.data || "") === d);
-    return matchesFornecedor && matchesNumero && matchesData;
+    const matchesFileEvento = exclude === "fileEvento" || fileEventoFilter.length === 0 ||
+      fileEventoFilter.some(f => (e.file_evento || "").toLowerCase() === f.toLowerCase());
+    const matchesMotorista = exclude === "motorista" || motoristaFilter.length === 0 ||
+      motoristaFilter.some(m => (e.motorista || "").toLowerCase() === m.toLowerCase());
+    return matchesFornecedor && matchesData && matchesFileEvento && matchesMotorista;
   });
 
   const filteredEntries = filterEntries(allEntries);
@@ -1116,6 +1156,19 @@ export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers 
                 {sortedEntries.length} serviço{sortedEntries.length !== 1 ? "s" : ""} pendente{sortedEntries.length !== 1 ? "s" : ""}
               </span>
               <div style={{ display: "flex", gap: 8, marginLeft: "auto" }}>
+                {selectMode && selectedIds.size > 0 && (
+                  <button type="button" onClick={handleBulkDownload} style={{ width: "auto", padding: "8px 20px", whiteSpace: "nowrap", background: "#22c55e", color: "#fff", borderRadius: 8, fontWeight: 800, textTransform: "uppercase", fontSize: 13, border: "none", cursor: "pointer" }}>
+                    ⬇ Baixar ({selectedIds.size})
+                  </button>
+                )}
+                <button type="button" onClick={toggleSelectMode} onMouseEnter={() => setSelectBtnHover(true)} onMouseLeave={() => setSelectBtnHover(false)} style={{ width: "auto", padding: "8px 20px", whiteSpace: "nowrap", background: selectMode ? (selectBtnHover ? "var(--primary-hover)" : "var(--primary)") : (selectBtnHover ? "rgba(212,175,55,0.05)" : "var(--bg-input)"), color: selectMode ? "#000" : (selectBtnHover ? "var(--primary)" : "var(--text-main)"), border: selectBtnHover ? "1px solid var(--primary)" : "1px solid var(--border-color)", borderRadius: 8, fontWeight: 800, textTransform: "uppercase", fontSize: 13, cursor: "pointer", transition: "all 0.3s ease" }}>
+                  {selectMode ? "✕ Cancelar" : "☑ Selecionar p/ Baixar"}
+                </button>
+                {selectMode && (
+                  <button type="button" onClick={toggleSelectAll} onMouseEnter={() => setTodosBtnHover(true)} onMouseLeave={() => setTodosBtnHover(false)} style={{ width: "auto", padding: "8px 20px", whiteSpace: "nowrap", background: todosBtnHover ? "rgba(212,175,55,0.05)" : "var(--bg-input)", color: todosBtnHover ? "var(--primary)" : "var(--text-main)", border: todosBtnHover ? "1px solid var(--primary)" : "1px solid var(--border-color)", borderRadius: 8, fontWeight: 800, textTransform: "uppercase", fontSize: 13, cursor: "pointer", transition: "all 0.3s ease" }}>
+                    Todos
+                  </button>
+                )}
                 <button type="button" onClick={() => {
                   if (sortedEntries.length === 0) return;
                   const fornecedores = [...new Set(sortedEntries.map(e => e.fornecedor || "Sem fornecedor"))];
@@ -1125,10 +1178,10 @@ export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers 
                   }
                   setFornecedorError(false);
                   onSubmit(sortedEntries);
-                }} className="add-client-btn-main" style={{ width: "auto", padding: "8px 20px", whiteSpace: "nowrap" }}>
+                }} className="action-tab-btn" style={{ whiteSpace: "nowrap" }}>
                   Gerar Ordem
                 </button>
-                <button type="button" onClick={() => setShowManualOSModal(true)} className="add-client-btn-main" style={{ width: "auto", padding: "8px 20px", whiteSpace: "nowrap" }}>
+                <button type="button" onClick={() => setShowManualOSModal(true)} className="action-tab-btn" style={{ whiteSpace: "nowrap" }}>
                   Gerar Manualmente
                 </button>
               </div>
@@ -1165,44 +1218,6 @@ export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers 
                             }} style={{ display: "flex", alignItems: "center", width: "100%", padding: "10px 14px", textAlign: "left", background: isSelected ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: isSelected ? 700 : 400, marginBottom: 4 }}>
                               <span style={{ marginRight: 8 }}>🏢</span>
                               <span style={{ flex: 1 }}>{f}</span>
-                              <span>{isSelected ? "✅" : "⬜"}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="search-container" style={{ flex: "0 0 100px" }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowNumeroPopup(true)}
-                    className="search-input"
-                    style={{ textAlign: "left", cursor: "pointer", height: 44, display: "flex", alignItems: "center", justifyContent: "space-between" }}
-                  >
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{numeroFilter.length > 0 ? `${numeroFilter.length} nº` : "Nº"}</span>
-                    <span style={{ fontSize: 10, color: "var(--text-placeholder)", flexShrink: 0 }}>▼</span>
-                  </button>
-                  {showNumeroPopup && (
-                    <div onClick={() => setShowNumeroPopup(false)} style={{ position: "fixed", inset: 0, zIndex: 2000 }}>
-                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
-                        <h3 style={{ color: "var(--primary)", fontSize: 16, fontWeight: 700, marginBottom: 16, textTransform: "uppercase", letterSpacing: 1 }}>Filtrar por Nº</h3>
-                        <button type="button" onClick={() => { setNumeroFilter([]); }} style={{ display: "block", width: "100%", padding: "10px 14px", textAlign: "left", background: numeroFilter.length === 0 ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: numeroFilter.length === 0 ? 700 : 400, marginBottom: 4 }}>
-                          📋 Todos os números
-                        </button>
-                        <div style={{ height: 1, background: "var(--border-color)", margin: "8px 0" }} />
-                        {[...new Set(filterEntries(allEntries, "numero").map(e => e.numero).filter(Boolean))].sort().map(n => {
-                          const isSelected = numeroFilter.some(v => v.toLowerCase() === n.toLowerCase());
-                          return (
-                            <button key={n} type="button" onClick={() => {
-                              if (isSelected) {
-                                setNumeroFilter(prev => prev.filter(v => v.toLowerCase() !== n.toLowerCase()));
-                              } else {
-                                setNumeroFilter(prev => [...prev, n]);
-                              }
-                            }} style={{ display: "flex", alignItems: "center", width: "100%", padding: "10px 14px", textAlign: "left", background: isSelected ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: isSelected ? 700 : 400, marginBottom: 4 }}>
-                              <span style={{ marginRight: 8 }}>#️⃣</span>
-                              <span style={{ flex: 1 }}>{n}</span>
                               <span>{isSelected ? "✅" : "⬜"}</span>
                             </button>
                           );
@@ -1249,7 +1264,83 @@ export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers 
                     </div>
                   )}
                 </div>
-                <button type="button" onClick={() => { setFornecedorFilter([]); setFornecedorError(false); setNumeroFilter([]); setDataFilter([]); }} style={{ fontSize: 12, padding: "0 14px", height: 44, background: "var(--bg-input)", border: "1px solid var(--border-color)", borderRadius: 20, cursor: "pointer", color: "var(--text-main)", whiteSpace: "nowrap", flexShrink: 0 }}>
+                <div className="search-container" style={{ flex: "0 0 150px" }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowFileEventoPopup(true)}
+                    className="search-input"
+                    style={{ textAlign: "left", cursor: "pointer", height: 44, display: "flex", alignItems: "center", justifyContent: "space-between" }}
+                  >
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fileEventoFilter.length > 0 ? `${fileEventoFilter.length} file(s)` : "File/Evento"}</span>
+                    <span style={{ fontSize: 10, color: "var(--text-placeholder)", flexShrink: 0 }}>▼</span>
+                  </button>
+                  {showFileEventoPopup && (
+                    <div onClick={() => setShowFileEventoPopup(false)} style={{ position: "fixed", inset: 0, zIndex: 2000 }}>
+                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+                        <h3 style={{ color: "var(--primary)", fontSize: 16, fontWeight: 700, marginBottom: 16, textTransform: "uppercase", letterSpacing: 1 }}>Filtrar por File/Evento</h3>
+                        <button type="button" onClick={() => { setFileEventoFilter([]); }} style={{ display: "block", width: "100%", padding: "10px 14px", textAlign: "left", background: fileEventoFilter.length === 0 ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: fileEventoFilter.length === 0 ? 700 : 400, marginBottom: 4 }}>
+                          📋 Todos os files/eventos
+                        </button>
+                        <div style={{ height: 1, background: "var(--border-color)", margin: "8px 0" }} />
+                        {[...new Set(filterEntries(allEntries, "fileEvento").map(e => e.file_evento).filter(Boolean))].sort().map(f => {
+                          const isSelected = fileEventoFilter.some(v => v.toLowerCase() === f.toLowerCase());
+                          return (
+                            <button key={f} type="button" onClick={() => {
+                              if (isSelected) {
+                                setFileEventoFilter(prev => prev.filter(v => v.toLowerCase() !== f.toLowerCase()));
+                              } else {
+                                setFileEventoFilter(prev => [...prev, f]);
+                              }
+                            }} style={{ display: "flex", alignItems: "center", width: "100%", padding: "10px 14px", textAlign: "left", background: isSelected ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: isSelected ? 700 : 400, marginBottom: 4 }}>
+                              <span style={{ marginRight: 8 }}>📁</span>
+                              <span style={{ flex: 1 }}>{f}</span>
+                              <span>{isSelected ? "✅" : "⬜"}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="search-container" style={{ flex: "0 0 150px" }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowMotoristaPopup(true)}
+                    className="search-input"
+                    style={{ textAlign: "left", cursor: "pointer", height: 44, display: "flex", alignItems: "center", justifyContent: "space-between" }}
+                  >
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{motoristaFilter.length > 0 ? `${motoristaFilter.length} motorista(s)` : "Motorista"}</span>
+                    <span style={{ fontSize: 10, color: "var(--text-placeholder)", flexShrink: 0 }}>▼</span>
+                  </button>
+                  {showMotoristaPopup && (
+                    <div onClick={() => setShowMotoristaPopup(false)} style={{ position: "fixed", inset: 0, zIndex: 2000 }}>
+                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+                        <h3 style={{ color: "var(--primary)", fontSize: 16, fontWeight: 700, marginBottom: 16, textTransform: "uppercase", letterSpacing: 1 }}>Filtrar por Motorista</h3>
+                        <button type="button" onClick={() => { setMotoristaFilter([]); }} style={{ display: "block", width: "100%", padding: "10px 14px", textAlign: "left", background: motoristaFilter.length === 0 ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: motoristaFilter.length === 0 ? 700 : 400, marginBottom: 4 }}>
+                          📋 Todos os motoristas
+                        </button>
+                        <div style={{ height: 1, background: "var(--border-color)", margin: "8px 0" }} />
+                        {[...new Set(filterEntries(allEntries, "motorista").map(e => e.motorista).filter(Boolean))].sort().map(m => {
+                          const isSelected = motoristaFilter.some(v => v.toLowerCase() === m.toLowerCase());
+                          return (
+                            <button key={m} type="button" onClick={() => {
+                              if (isSelected) {
+                                setMotoristaFilter(prev => prev.filter(v => v.toLowerCase() !== m.toLowerCase()));
+                              } else {
+                                setMotoristaFilter(prev => [...prev, m]);
+                              }
+                            }} style={{ display: "flex", alignItems: "center", width: "100%", padding: "10px 14px", textAlign: "left", background: isSelected ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: isSelected ? 700 : 400, marginBottom: 4 }}>
+                              <span style={{ marginRight: 8 }}>🚗</span>
+                              <span style={{ flex: 1 }}>{m}</span>
+                              <span>{isSelected ? "✅" : "⬜"}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <button type="button" onClick={() => { setFornecedorFilter([]); setFornecedorError(false); setDataFilter([]); setFileEventoFilter([]); setMotoristaFilter([]); }} style={{ fontSize: 12, padding: "0 14px", height: 44, background: "var(--bg-input)", border: "1px solid var(--border-color)", borderRadius: 20, cursor: "pointer", color: "var(--text-main)", whiteSpace: "nowrap", flexShrink: 0 }}>
                   Limpar Filtro
                 </button>
               </div>
@@ -1273,12 +1364,13 @@ export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers 
                     <SortHeader label="Veículo" sortKey="veiculo" sortConfig={sortConfig} onSort={handleSort} />
                     <SortHeader label="Placa" sortKey="placa" sortConfig={sortConfig} onSort={handleSort} />
                     <SortHeader label="Motorista/Contato" sortKey="motorista_contato" sortConfig={sortConfig} onSort={handleSort} />
+                    <th style={{ textAlign: "center" }}>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
                   {sortedEntries.length === 0 ? (
                     <tr>
-                      <td colSpan={16} style={{ textAlign: "center", padding: 40, color: "var(--text-placeholder)", fontStyle: "italic" }}>
+                      <td colSpan={17} style={{ textAlign: "center", padding: 40, color: "var(--text-placeholder)", fontStyle: "italic" }}>
                         Nenhuma ordem de serviço pendente.
                       </td>
                     </tr>
@@ -1308,6 +1400,22 @@ export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers 
                         {e.contato_motorista ? <><br />{e.contato_motorista.split(" / ").map((line, i) => (
                           <span key={i}>{i > 0 && <br />}{line}</span>
                         ))}</> : ""}
+                      </td>
+                      <td className="actions-cell">
+                        {selectMode ? (
+                          <div style={{ display: "flex", justifyContent: "center" }}>
+                            <input type="checkbox" checked={selectedIds.has(i)} onChange={() => toggleSelectEntry(i)} style={{ cursor: "pointer", width: 16, height: 16 }} />
+                          </div>
+                        ) : (
+                          <div className="spreadsheet-actions justify-end" style={{ gap: 4 }}>
+                            {onPreviewOS && (
+                              <button type="button" onClick={() => onPreviewOS(e)} className="action-icon-btn select" title="Visualizar OS">👁️</button>
+                            )}
+                            {onDownloadOS && (
+                              <button type="button" onClick={() => onDownloadOS(e)} className="action-icon-btn download" title="Baixar OS em PDF">⬇️</button>
+                            )}
+                          </div>
+                        )}
                       </td>
 
                     </tr>

@@ -79,6 +79,17 @@ const autoResize = (el) => {
   el.style.height = el.scrollHeight + "px";
 };
 
+const formatCurrency = (val) => {
+  let digits = val.replace(/\D/g, "");
+  if (!digits) return "";
+  digits = digits.replace(/^0+/, "") || "0";
+  while (digits.length < 3) digits = "0" + digits;
+  const intPart = digits.slice(0, -2);
+  const decPart = digits.slice(-2);
+  const formatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `${formatted},${decPart}`;
+};
+
 const InputField = ({ label, value, onChange, onInput, onKeyDown, onBlur, type = "text", placeholder = "", error = false, inputRef }) => (
   <div className={`input-group${error ? ' input-error' : ''}`}>
     <label className="input-label">{label}</label>
@@ -120,17 +131,22 @@ export default function MapaServicoForm({
     veiculo: "",
     placa: "",
     motorista: "",
+    valor_pagar: "",
+    valor_receber: "",
   });
 
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [showFinanceiro, setShowFinanceiro] = useState(false);
   const [fornecedorFilter, setFornecedorFilter] = useState([]);
-  const [numeroFilter, setNumeroFilter] = useState([]);
+  const [fileEventoFilter, setFileEventoFilter] = useState([]);
+  const [motoristaFilter, setMotoristaFilter] = useState([]);
   const [dataFilter, setDataFilter] = useState([]);
   const [showFornecedorPopup, setShowFornecedorPopup] = useState(false);
-  const [showNumeroPopup, setShowNumeroPopup] = useState(false);
+  const [showFileEventoPopup, setShowFileEventoPopup] = useState(false);
+  const [showMotoristaPopup, setShowMotoristaPopup] = useState(false);
   const [showDatePopup, setShowDatePopup] = useState(false);
-  const [statusFilter, setStatusFilter] = useState("afazer");
+
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [loading, setLoading] = useState(true);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
@@ -336,9 +352,12 @@ export default function MapaServicoForm({
       else if (errors.data && dataRef.current) dataRef.current.focus();
       return;
     }
+    const pagar = parseFloat((entry.valor_pagar || "0").replace(/\./g, "").replace(",", ".")) || 0;
+    const receber = parseFloat((entry.valor_receber || "0").replace(/\./g, "").replace(",", ".")) || 0;
+    const entryWithLucro = { ...entry, lucro: receber - pagar };
     if (editingId) {
       try {
-        const updated = await api.put(`/api/agenda/${editingId}`, entry);
+        const updated = await api.put(`/api/agenda/${editingId}`, entryWithLucro);
         setEntries(prev => prev.map(e => e.id === editingId ? updated : e));
         setEditingId(null);
         setShowForm(false);
@@ -348,7 +367,7 @@ export default function MapaServicoForm({
       }
     } else {
       try {
-        const created = await api.post("/api/agenda", entry);
+        const created = await api.post("/api/agenda", entryWithLucro);
         setEntries(prev => [...prev, created]);
       } catch (err) {
         console.error("Erro ao salvar agendamento:", err);
@@ -373,17 +392,11 @@ export default function MapaServicoForm({
       placa: "",
       motorista: "",
       contato_motorista: "",
+      valor_pagar: "",
+      valor_receber: "",
     });
   };
 
-  const toggleConcluido = async (item) => {
-    try {
-      const updated = await api.patch(`/api/agenda/${item.id}/concluir`);
-      setEntries(prev => prev.map(e => e.id === item.id ? updated : e));
-    } catch (err) {
-      console.error("Erro ao alternar conclusão:", err);
-    }
-  };
 
   const editEntry = (item) => {
     setEntry({
@@ -404,6 +417,8 @@ export default function MapaServicoForm({
       placa: item.placa || "",
       motorista: item.motorista || "",
       contato_motorista: item.contato_motorista || "",
+      valor_pagar: item.valor_pagar || "",
+      valor_receber: item.valor_receber || "",
     });
     setEditingId(item.id);
     setShowForm(true);
@@ -437,6 +452,8 @@ export default function MapaServicoForm({
           placa: "",
           motorista: "",
           contato_motorista: "",
+          valor_pagar: "",
+          valor_receber: "",
         });
       }
     } catch (err) {
@@ -447,14 +464,13 @@ export default function MapaServicoForm({
   const filterEntries = (entries, exclude) => entries.filter(e => {
     const matchesFornecedor = exclude === "fornecedor" || fornecedorFilter.length === 0 ||
       fornecedorFilter.some(f => (e.fornecedor || "").toLowerCase() === f.toLowerCase());
-    const matchesNumero = exclude === "numero" || numeroFilter.length === 0 ||
-      numeroFilter.some(n => (e.numero || "").toLowerCase() === n.toLowerCase());
+    const matchesFileEvento = exclude === "fileEvento" || fileEventoFilter.length === 0 ||
+      fileEventoFilter.some(f => (e.file_evento || "").toLowerCase() === f.toLowerCase());
+    const matchesMotorista = exclude === "motorista" || motoristaFilter.length === 0 ||
+      motoristaFilter.some(m => (e.motorista || "").toLowerCase() === m.toLowerCase());
     const matchesData = exclude === "data" || dataFilter.length === 0 ||
       dataFilter.some(d => (e.data || "") === d);
-    const matchesStatus = statusFilter === "todos" ||
-      (statusFilter === "concluido" && e.concluido) ||
-      (statusFilter === "afazer" && !e.concluido);
-    return matchesFornecedor && matchesNumero && matchesData && matchesStatus;
+    return matchesFornecedor && matchesFileEvento && matchesMotorista && matchesData;
   });
 
   const filteredEntries = filterEntries(entries);
@@ -470,6 +486,11 @@ export default function MapaServicoForm({
     if (key === "cliente") return (e.cliente?.nome || "").toLowerCase();
     if (key === "guia") return (e.nome_guia || "").toLowerCase();
     if (key === "motorista_contato") return (e.motorista || "").toLowerCase();
+    if (key === "valor_pagar" || key === "valor_receber" || key === "lucro") {
+      const val = e[key];
+      if (val === null || val === undefined || val === "") return "0";
+      return String(val).replace(/\./g, "").replace(",", ".");
+    }
     return (e[key] || "").toString().toLowerCase();
   };
 
@@ -508,7 +529,7 @@ export default function MapaServicoForm({
 
   const SortHeader = ({ label, sortKey, style }) => (
     <th onClick={() => handleSort(sortKey)} style={{ cursor: "pointer", userSelect: "none", ...style }}>
-      {label} {sortConfig.key === sortKey ? (sortConfig.direction === "asc" ? " ▲" : " ▼") : ""}
+      {label}
     </th>
   );
 
@@ -526,7 +547,7 @@ export default function MapaServicoForm({
         {/* NOVO SERVIÇO BUTTON (when no entries yet) */}
         {!showForm && entries.length === 0 && (
           <div className="form-actions-standard" style={{ marginBottom: 16 }}>
-            <button type="button" onClick={() => { setShowForm(true); setEditingId(null); setEntry({ fornecedor: "", numero: "", data: "", hora: "", voo: "", servico: "", nome_guia: "", tel_guia: "", nome_pax: "", pax: "", file_evento: "", cliente: { nome: "", documento: "", email: "", endereco: "" }, observacao: "", veiculo: "", placa: "", motorista: "", contato_motorista: "" }); }} className="submit-btn">
+            <button type="button" onClick={() => { setShowForm(true); setEditingId(null); setEntry({ fornecedor: "", numero: "", data: "", hora: "", voo: "", servico: "", nome_guia: "", tel_guia: "", nome_pax: "", pax: "", file_evento: "", cliente: { nome: "", documento: "", email: "", endereco: "" }, observacao: "", veiculo: "", placa: "", motorista: "", contato_motorista: "", valor_pagar: "", valor_receber: "" }); }} className="submit-btn">
               Agendar Serviço
             </button>
           </div>
@@ -619,13 +640,45 @@ export default function MapaServicoForm({
                   )}
                 </div>
                 <div style={{ flex: 1 }}><InputField label="Contato Motorista" value={entry.contato_motorista} onKeyDown={(e) => handlePhoneKeyDown(e, (v) => updateEntry("contato_motorista", v))} onInput={(e) => handlePhoneInput(e, (v) => updateEntry("contato_motorista", v))} placeholder="Ex: 21 99292-1544 / 21 98985-5252" /></div>
+                <div style={{ flex: 1 }}>
+                  <div className="input-group">
+                    <label className="input-label">A Pagar Fornecedor</label>
+                    <input type="text" value={entry.valor_pagar} onChange={(e) => updateEntry("valor_pagar", formatCurrency(e.target.value))} placeholder="R$ 1.752,45" className="custom-input" />
+                  </div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div className="input-group">
+                    <label className="input-label">A Receber Cliente</label>
+                    <input type="text" value={entry.valor_receber} onChange={(e) => updateEntry("valor_receber", formatCurrency(e.target.value))} placeholder="R$ 1.752,45" className="custom-input" />
+                  </div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div className="input-group">
+                    <label className="input-label">Lucro</label>
+                    <div className="custom-input" style={{ background: "var(--bg-input)", display: "flex", alignItems: "center", fontWeight: 700, color: (() => {
+                      const pagar = parseFloat((entry.valor_pagar || "0").replace(/\./g, "").replace(",", ".")) || 0;
+                      const receber = parseFloat((entry.valor_receber || "0").replace(/\./g, "").replace(",", ".")) || 0;
+                      const diff = receber - pagar;
+                      return diff >= 0 ? "#22c55e" : "#ef4444";
+                    })() }}>
+                      R$ {(() => {
+                        const pagar = parseFloat((entry.valor_pagar || "0").replace(/\./g, "").replace(",", ".")) || 0;
+                        const receber = parseFloat((entry.valor_receber || "0").replace(/\./g, "").replace(",", ".")) || 0;
+                        const diff = receber - pagar;
+                        const abs = Math.abs(diff);
+                        const formatted = abs.toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+                        return diff >= 0 ? `+ ${formatted}` : `- ${formatted}`;
+                      })()}
+                    </div>
+                  </div>
+                </div>
               </div>
           </div>
           <div className="form-actions-standard" style={{ marginTop: 12 }}>
             <button type="button" onClick={addOrUpdateEntry} className="submit-btn">
               {editingId ? "Atualizar" : "Adicionar"}
             </button>
-            <button type="button" onClick={() => { setEditingId(null); setShowForm(false); setEntry({ fornecedor: "", numero: "", data: "", hora: "", voo: "", servico: "", nome_guia: "", tel_guia: "", nome_pax: "", pax: "", file_evento: "", cliente: { nome: "", documento: "", email: "", endereco: "" }, observacao: "", veiculo: "", placa: "", motorista: "", contato_motorista: "" }); }} className="back-btn" style={{ marginLeft: 8 }}>
+            <button type="button" onClick={() => { setEditingId(null); setShowForm(false); setEntry({ fornecedor: "", numero: "", data: "", hora: "", voo: "", servico: "", nome_guia: "", tel_guia: "", nome_pax: "", pax: "", file_evento: "", cliente: { nome: "", documento: "", email: "", endereco: "" }, observacao: "", veiculo: "", placa: "", motorista: "", contato_motorista: "", valor_pagar: "", valor_receber: "" }); }} className="back-btn" style={{ marginLeft: 8 }}>
               Cancelar
             </button>
           </div>
@@ -643,22 +696,15 @@ export default function MapaServicoForm({
                     ? `${sortedEntries.length} de ${entries.length}`
                     : `${entries.length}`} serviço{entries.length !== 1 ? "s" : ""}
                 </span>
-                <div style={{ display: "flex", gap: 6, marginLeft: 16 }}>
-                  <button type="button" onClick={() => setStatusFilter("todos")} style={{ padding: "4px 12px", borderRadius: 6, border: "1px solid", cursor: "pointer", fontWeight: statusFilter === "todos" ? 700 : 400, fontSize: 12, background: statusFilter === "todos" ? "var(--primary)" : "transparent", color: statusFilter === "todos" ? "#000" : "var(--primary)", borderColor: "var(--primary)", transition: "all 0.2s" }}>
-                    Todos
+
+                <div style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
+                  <button type="button" onClick={() => setShowFinanceiro(prev => !prev)} className="action-tab-btn" style={{ padding: "0 12px", fontWeight: 700, color: showFinanceiro ? "var(--primary)" : "var(--text-placeholder)" }}>
+                    R$
                   </button>
-                  <button type="button" onClick={() => setStatusFilter("afazer")} style={{ padding: "4px 12px", borderRadius: 6, border: "1px solid", cursor: "pointer", fontWeight: statusFilter === "afazer" ? 700 : 400, fontSize: 12, background: statusFilter === "afazer" ? "var(--primary)" : "transparent", color: statusFilter === "afazer" ? "#000" : "var(--primary)", borderColor: "var(--primary)", transition: "all 0.2s" }}>
-                    A fazer
-                  </button>
-                  <button type="button" onClick={() => setStatusFilter("concluido")} style={{ padding: "4px 12px", borderRadius: 6, border: "1px solid", cursor: "pointer", fontWeight: statusFilter === "concluido" ? 700 : 400, fontSize: 12, background: statusFilter === "concluido" ? "var(--primary)" : "transparent", color: statusFilter === "concluido" ? "#000" : "var(--primary)", borderColor: "var(--primary)", transition: "all 0.2s" }}>
-                    Concluído
-                  </button>
-                </div>
-                <div style={{ display: "flex", gap: 8, marginLeft: "auto" }}>
-                  <button type="button" onClick={() => onSubmit(sortedEntries)} className="add-client-btn-main" style={{ width: "auto", padding: "8px 20px", whiteSpace: "nowrap" }}>
+                  <button type="button" onClick={() => onSubmit(sortedEntries)} className="action-tab-btn" style={{ whiteSpace: "nowrap" }}>
                     Gerar Mapa
                   </button>
-                  <button type="button" onClick={() => { setShowForm(true); setEditingId(null); setEntry({ fornecedor: "", numero: "", data: "", hora: "", voo: "", servico: "", nome_guia: "", tel_guia: "", nome_pax: "", pax: "", file_evento: "", cliente: { nome: "", documento: "", email: "", endereco: "" }, observacao: "", veiculo: "", placa: "", motorista: "", contato_motorista: "" }); }} className="add-client-btn-main" style={{ width: "auto", padding: "8px 20px" }}>
+                  <button type="button" onClick={() => { setShowForm(true); setEditingId(null); setEntry({ fornecedor: "", numero: "", data: "", hora: "", voo: "", servico: "", nome_guia: "", tel_guia: "", nome_pax: "", pax: "", file_evento: "", cliente: { nome: "", documento: "", email: "", endereco: "" }, observacao: "", veiculo: "", placa: "", motorista: "", contato_motorista: "", valor_pagar: "", valor_receber: "" }); }} className="action-tab-btn">
               Agendar Serviço
                   </button>
                 </div>
@@ -694,44 +740,6 @@ export default function MapaServicoForm({
                             }} style={{ display: "flex", alignItems: "center", width: "100%", padding: "10px 14px", textAlign: "left", background: isSelected ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: isSelected ? 700 : 400, marginBottom: 4 }}>
                               <span style={{ marginRight: 8 }}>🏢</span>
                               <span style={{ flex: 1 }}>{f}</span>
-                              <span>{isSelected ? "✅" : "⬜"}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="search-container" style={{ flex: "0 0 100px" }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowNumeroPopup(true)}
-                    className="search-input"
-                    style={{ textAlign: "left", cursor: "pointer", height: 44, display: "flex", alignItems: "center", justifyContent: "space-between" }}
-                  >
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{numeroFilter.length > 0 ? `${numeroFilter.length} nº` : "Nº"}</span>
-                    <span style={{ fontSize: 10, color: "var(--text-placeholder)", flexShrink: 0 }}>▼</span>
-                  </button>
-                  {showNumeroPopup && (
-                    <div onClick={() => setShowNumeroPopup(false)} style={{ position: "fixed", inset: 0, zIndex: 2000 }}>
-                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
-                        <h3 style={{ color: "var(--primary)", fontSize: 16, fontWeight: 700, marginBottom: 16, textTransform: "uppercase", letterSpacing: 1 }}>Filtrar por Nº</h3>
-                        <button type="button" onClick={() => { setNumeroFilter([]); }} style={{ display: "block", width: "100%", padding: "10px 14px", textAlign: "left", background: numeroFilter.length === 0 ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: numeroFilter.length === 0 ? 700 : 400, marginBottom: 4 }}>
-                          📋 Todos os números
-                        </button>
-                        <div style={{ height: 1, background: "var(--border-color)", margin: "8px 0" }} />
-                        {[...new Set(filterEntries(entries, "numero").map(e => e.numero).filter(Boolean))].sort().map(n => {
-                          const isSelected = numeroFilter.some(v => v.toLowerCase() === n.toLowerCase());
-                          return (
-                            <button key={n} type="button" onClick={() => {
-                              if (isSelected) {
-                                setNumeroFilter(prev => prev.filter(v => v.toLowerCase() !== n.toLowerCase()));
-                              } else {
-                                setNumeroFilter(prev => [...prev, n]);
-                              }
-                            }} style={{ display: "flex", alignItems: "center", width: "100%", padding: "10px 14px", textAlign: "left", background: isSelected ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: isSelected ? 700 : 400, marginBottom: 4 }}>
-                              <span style={{ marginRight: 8 }}>#️⃣</span>
-                              <span style={{ flex: 1 }}>{n}</span>
                               <span>{isSelected ? "✅" : "⬜"}</span>
                             </button>
                           );
@@ -778,7 +786,83 @@ export default function MapaServicoForm({
                     </div>
                   )}
                 </div>
-                <button type="button" onClick={() => { setFornecedorFilter([]); setNumeroFilter([]); setDataFilter([]); }} style={{ fontSize: 12, padding: "0 14px", height: 44, background: "var(--bg-input)", border: "1px solid var(--border-color)", borderRadius: 20, cursor: "pointer", color: "var(--text-main)", whiteSpace: "nowrap", flexShrink: 0 }}>
+                <div className="search-container" style={{ flex: "0 0 150px" }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowFileEventoPopup(true)}
+                    className="search-input"
+                    style={{ textAlign: "left", cursor: "pointer", height: 44, display: "flex", alignItems: "center", justifyContent: "space-between" }}
+                  >
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fileEventoFilter.length > 0 ? `${fileEventoFilter.length} file(s)` : "File/Evento"}</span>
+                    <span style={{ fontSize: 10, color: "var(--text-placeholder)", flexShrink: 0 }}>▼</span>
+                  </button>
+                  {showFileEventoPopup && (
+                    <div onClick={() => setShowFileEventoPopup(false)} style={{ position: "fixed", inset: 0, zIndex: 2000 }}>
+                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+                        <h3 style={{ color: "var(--primary)", fontSize: 16, fontWeight: 700, marginBottom: 16, textTransform: "uppercase", letterSpacing: 1 }}>Filtrar por File/Evento</h3>
+                        <button type="button" onClick={() => { setFileEventoFilter([]); }} style={{ display: "block", width: "100%", padding: "10px 14px", textAlign: "left", background: fileEventoFilter.length === 0 ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: fileEventoFilter.length === 0 ? 700 : 400, marginBottom: 4 }}>
+                          📋 Todos os files/eventos
+                        </button>
+                        <div style={{ height: 1, background: "var(--border-color)", margin: "8px 0" }} />
+                        {[...new Set(filterEntries(entries, "fileEvento").map(e => e.file_evento).filter(Boolean))].sort().map(f => {
+                          const isSelected = fileEventoFilter.some(v => v.toLowerCase() === f.toLowerCase());
+                          return (
+                            <button key={f} type="button" onClick={() => {
+                              if (isSelected) {
+                                setFileEventoFilter(prev => prev.filter(v => v.toLowerCase() !== f.toLowerCase()));
+                              } else {
+                                setFileEventoFilter(prev => [...prev, f]);
+                              }
+                            }} style={{ display: "flex", alignItems: "center", width: "100%", padding: "10px 14px", textAlign: "left", background: isSelected ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: isSelected ? 700 : 400, marginBottom: 4 }}>
+                              <span style={{ marginRight: 8 }}>📁</span>
+                              <span style={{ flex: 1 }}>{f}</span>
+                              <span>{isSelected ? "✅" : "⬜"}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="search-container" style={{ flex: "0 0 150px" }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowMotoristaPopup(true)}
+                    className="search-input"
+                    style={{ textAlign: "left", cursor: "pointer", height: 44, display: "flex", alignItems: "center", justifyContent: "space-between" }}
+                  >
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{motoristaFilter.length > 0 ? `${motoristaFilter.length} motorista(s)` : "Motorista"}</span>
+                    <span style={{ fontSize: 10, color: "var(--text-placeholder)", flexShrink: 0 }}>▼</span>
+                  </button>
+                  {showMotoristaPopup && (
+                    <div onClick={() => setShowMotoristaPopup(false)} style={{ position: "fixed", inset: 0, zIndex: 2000 }}>
+                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+                        <h3 style={{ color: "var(--primary)", fontSize: 16, fontWeight: 700, marginBottom: 16, textTransform: "uppercase", letterSpacing: 1 }}>Filtrar por Motorista</h3>
+                        <button type="button" onClick={() => { setMotoristaFilter([]); }} style={{ display: "block", width: "100%", padding: "10px 14px", textAlign: "left", background: motoristaFilter.length === 0 ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: motoristaFilter.length === 0 ? 700 : 400, marginBottom: 4 }}>
+                          📋 Todos os motoristas
+                        </button>
+                        <div style={{ height: 1, background: "var(--border-color)", margin: "8px 0" }} />
+                        {[...new Set(filterEntries(entries, "motorista").map(e => e.motorista).filter(Boolean))].sort().map(m => {
+                          const isSelected = motoristaFilter.some(v => v.toLowerCase() === m.toLowerCase());
+                          return (
+                            <button key={m} type="button" onClick={() => {
+                              if (isSelected) {
+                                setMotoristaFilter(prev => prev.filter(v => v.toLowerCase() !== m.toLowerCase()));
+                              } else {
+                                setMotoristaFilter(prev => [...prev, m]);
+                              }
+                            }} style={{ display: "flex", alignItems: "center", width: "100%", padding: "10px 14px", textAlign: "left", background: isSelected ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: isSelected ? 700 : 400, marginBottom: 4 }}>
+                              <span style={{ marginRight: 8 }}>🚗</span>
+                              <span style={{ flex: 1 }}>{m}</span>
+                              <span>{isSelected ? "✅" : "⬜"}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <button type="button" onClick={() => { setFornecedorFilter([]); setFileEventoFilter([]); setMotoristaFilter([]); setDataFilter([]); }} style={{ fontSize: 12, padding: "0 14px", height: 44, background: "var(--bg-input)", border: "1px solid var(--border-color)", borderRadius: 20, cursor: "pointer", color: "var(--text-main)", whiteSpace: "nowrap", flexShrink: 0 }}>
                   Limpar Filtro
                 </button>
               </div>
@@ -801,13 +885,16 @@ export default function MapaServicoForm({
                       <SortHeader label="Veículo" sortKey="veiculo" />
                       <SortHeader label="Placa" sortKey="placa" />
                       <SortHeader label="Motorista/Contato" sortKey="motorista_contato" />
+                      {showFinanceiro && <SortHeader label="A Pagar" sortKey="valor_pagar" />}
+                      {showFinanceiro && <SortHeader label="A Receber" sortKey="valor_receber" />}
+                      {showFinanceiro && <SortHeader label="Lucro" sortKey="lucro" />}
                       <th style={{ textAlign: "center" }}>Ações</th>
                     </tr>
                   </thead>
                   <tbody>
                     {sortedEntries.length === 0 ? (
                       <tr>
-                        <td colSpan={16} style={{ textAlign: "center", padding: 40, color: "var(--text-placeholder)", fontStyle: "italic" }}>
+                        <td colSpan={showFinanceiro ? 19 : 16} style={{ textAlign: "center", padding: 40, color: "var(--text-placeholder)", fontStyle: "italic" }}>
                           Nenhum serviço encontrado para este filtro.
                         </td>
                       </tr>
@@ -838,9 +925,11 @@ export default function MapaServicoForm({
                             <span key={i}>{i > 0 && <br />}{line}</span>
                           ))}</> : ""}
                         </td>
+                        {showFinanceiro && <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>{e.valor_pagar && e.valor_pagar !== "0" && e.valor_pagar !== "" ? `R$ ${Number(String(e.valor_pagar).replace(/\./g, "").replace(",", ".")).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "---"}</td>}
+                        {showFinanceiro && <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>{e.valor_receber && e.valor_receber !== "0" && e.valor_receber !== "" ? `R$ ${Number(String(e.valor_receber).replace(/\./g, "").replace(",", ".")).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "---"}</td>}
+                        {showFinanceiro && <td style={{ textAlign: "right", whiteSpace: "nowrap", color: e.lucro < 0 ? "#d32f2f" : "#2e7d32" }}>{e.lucro ? `R$ ${Number(e.lucro).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "---"}</td>}
                         <td className="actions-cell">
                           <div className="spreadsheet-actions justify-end">
-                            <button type="button" onClick={() => toggleConcluido(e)} className="action-icon-btn" title={e.concluido ? "Marcar como não concluído" : "Marcar como concluído"} style={{ color: e.concluido ? "#4caf50" : "var(--text-placeholder)", borderColor: e.concluido ? "#4caf50" : "var(--border-color)" }}>{e.concluido ? "✔" : "○"}</button>
                             <button type="button" onClick={() => editEntry(e)} className="action-icon-btn edit" title="Editar">✎</button>
                             <button type="button" onClick={() => setConfirmDeleteId(e.id)} className="action-icon-btn delete" title="Remover">🗑</button>
                           </div>

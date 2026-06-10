@@ -1,0 +1,3 @@
+ALTER TABLE agenda_servicos ADD COLUMN IF NOT EXISTS valor_pagar TEXT DEFAULT '';
+ALTER TABLE agenda_servicos ADD COLUMN IF NOT EXISTS valor_receber TEXT DEFAULT '';
+ALTER TABLE agenda_servicos ADD COLUMN IF NOT EXISTS lucro NUMERIC DEFAULT 0;

@@ -17,7 +17,10 @@ router.get("/", async (req, res) => {
         documento: item.cliente_documento || "",
         email: item.cliente_email || "",
         endereco: item.cliente_endereco || "",
-      }
+      },
+      valor_pagar: item.valor_pagar || "",
+      valor_receber: item.valor_receber || "",
+      lucro: item.lucro || 0,
     }));
     res.json(parsed);
   } catch (err) {
@@ -28,17 +31,18 @@ router.get("/", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    const { fornecedor, numero, data, hora, voo, servico, nome_guia, tel_guia, nome_pax, pax, file_evento, cliente, observacao, veiculo, placa, motorista, contato_motorista } = req.body;
+    const { fornecedor, numero, data, hora, voo, servico, nome_guia, tel_guia, nome_pax, pax, file_evento, cliente, observacao, veiculo, placa, motorista, contato_motorista, valor_pagar, valor_receber, lucro } = req.body;
 
     const { rows } = await pool.query(`
-      INSERT INTO agenda_servicos (fornecedor, numero, data, hora, voo, servico, nome_guia, tel_guia, nome_pax, pax, file_evento, cliente_nome, cliente_documento, cliente_email, cliente_endereco, observacao, veiculo, placa, motorista, contato_motorista)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+      INSERT INTO agenda_servicos (fornecedor, numero, data, hora, voo, servico, nome_guia, tel_guia, nome_pax, pax, file_evento, cliente_nome, cliente_documento, cliente_email, cliente_endereco, observacao, veiculo, placa, motorista, contato_motorista, valor_pagar, valor_receber, lucro)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
       RETURNING *
     `, [
       fornecedor || "", numero || "", data || "", hora || "", voo || "", servico || "",
       nome_guia || "", tel_guia || "", nome_pax || "", pax || "", file_evento || "",
       cliente?.nome || "", cliente?.documento || "", cliente?.email || "", cliente?.endereco || "",
-      observacao || "", veiculo || "", placa || "", motorista || "", contato_motorista || ""
+      observacao || "", veiculo || "", placa || "", motorista || "", contato_motorista || "",
+      valor_pagar || "", valor_receber || "", lucro || 0
     ]);
     const item = rows[0];
     res.json({
@@ -49,7 +53,10 @@ router.post("/", async (req, res) => {
         documento: item.cliente_documento || "",
         email: item.cliente_email || "",
         endereco: item.cliente_endereco || "",
-      }
+      },
+      valor_pagar: item.valor_pagar || "",
+      valor_receber: item.valor_receber || "",
+      lucro: item.lucro || 0,
     });
   } catch (err) {
     console.error("Erro ao criar agendamento:", err);
@@ -59,18 +66,18 @@ router.post("/", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
   try {
-    const { fornecedor, numero, data, hora, voo, servico, nome_guia, tel_guia, nome_pax, pax, file_evento, cliente, observacao, veiculo, placa, motorista, contato_motorista, concluido } = req.body;
+    const { fornecedor, numero, data, hora, voo, servico, nome_guia, tel_guia, nome_pax, pax, file_evento, cliente, observacao, veiculo, placa, motorista, contato_motorista, concluido, valor_pagar, valor_receber, lucro } = req.body;
 
     const { rowCount, rows } = await pool.query(`
-      UPDATE agenda_servicos SET fornecedor = $1, numero = $2, data = $3, hora = $4, voo = $5, servico = $6, nome_guia = $7, tel_guia = $8, nome_pax = $9, pax = $10, file_evento = $11, cliente_nome = $12, cliente_documento = $13, cliente_email = $14, cliente_endereco = $15, observacao = $16, veiculo = $17, placa = $18, motorista = $19, contato_motorista = $20, concluido = $21
-      WHERE id = $22
+      UPDATE agenda_servicos SET fornecedor = $1, numero = $2, data = $3, hora = $4, voo = $5, servico = $6, nome_guia = $7, tel_guia = $8, nome_pax = $9, pax = $10, file_evento = $11, cliente_nome = $12, cliente_documento = $13, cliente_email = $14, cliente_endereco = $15, observacao = $16, veiculo = $17, placa = $18, motorista = $19, contato_motorista = $20, concluido = $21, valor_pagar = $22, valor_receber = $23, lucro = $24
+      WHERE id = $25
       RETURNING *
     `, [
       fornecedor || "", numero || "", data || "", hora || "", voo || "", servico || "",
       nome_guia || "", tel_guia || "", nome_pax || "", pax || "", file_evento || "",
       cliente?.nome || "", cliente?.documento || "", cliente?.email || "", cliente?.endereco || "",
       observacao || "", veiculo || "", placa || "", motorista || "", contato_motorista || "",
-      concluido === true,
+      concluido === true, valor_pagar || "", valor_receber || "", lucro || 0,
       req.params.id
     ]);
 
@@ -84,7 +91,10 @@ router.put("/:id", async (req, res) => {
         documento: item.cliente_documento || "",
         email: item.cliente_email || "",
         endereco: item.cliente_endereco || "",
-      }
+      },
+      valor_pagar: item.valor_pagar || "",
+      valor_receber: item.valor_receber || "",
+      lucro: item.lucro || 0,
     });
   } catch (err) {
     console.error("Erro ao atualizar agendamento:", err);
@@ -110,7 +120,10 @@ router.patch("/:id/concluir", async (req, res) => {
         documento: updated.cliente_documento || "",
         email: updated.cliente_email || "",
         endereco: updated.cliente_endereco || "",
-      }
+      },
+      valor_pagar: updated.valor_pagar || "",
+      valor_receber: updated.valor_receber || "",
+      lucro: updated.lucro || 0,
     });
   } catch (err) {
     console.error("Erro ao concluir agendamento:", err);

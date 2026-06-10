@@ -128,9 +128,18 @@ async function initDB() {
         placa TEXT DEFAULT '',
         motorista TEXT DEFAULT '',
         contato_motorista TEXT DEFAULT '',
+        valor_pagar TEXT DEFAULT '',
+        valor_receber TEXT DEFAULT '',
+        lucro NUMERIC DEFAULT 0,
         concluido BOOLEAN DEFAULT FALSE,
         created_at TEXT DEFAULT NOW()
       );
+    `);
+
+    await client.query(`
+      ALTER TABLE agenda_servicos ADD COLUMN IF NOT EXISTS valor_pagar TEXT DEFAULT '';
+      ALTER TABLE agenda_servicos ADD COLUMN IF NOT EXISTS valor_receber TEXT DEFAULT '';
+      ALTER TABLE agenda_servicos ADD COLUMN IF NOT EXISTS lucro NUMERIC DEFAULT 0;
     `);
 
     const tables = [

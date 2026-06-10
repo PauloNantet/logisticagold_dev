@@ -527,6 +527,149 @@ function AuthenticatedApp({ onLogout }) {
     }
   };
 
+  const handlePreviewSingleOS = (entry) => {
+    setOsPreviewEntries([entry]);
+    setOsIsLocked(false);
+    setOsPreview(true);
+    setOsPreviewSource("single");
+    window.scrollTo(0, 0);
+  };
+
+  const handleDownloadSingleOS = (entry) => {
+    const formatDateBR = (val) => {
+      if (!val) return "";
+      const parts = val.split("-");
+      if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      return val;
+    };
+    const fornecedor = entry.fornecedor || "";
+    const empresa = data.empresa || {};
+    const html = `
+      <div class="os-paper landscape" style="width:1123px;margin:0;padding:0;font-family:Arial,sans-serif;">
+        <div class="os-header">
+          <div class="os-brand">
+            ${empresa.logo ? `<img src="${empresa.logo}" class="os-logo" alt="Logo" />` : ""}
+            <span class="os-company">${empresa.nome || "SUA EMPRESA"} - Ordem de Serviço - ${fornecedor}</span>
+          </div>
+        </div>
+        <table class="os-table">
+          <thead><tr>
+            <th>Nº</th><th>DATA</th><th>HORA</th><th>VOO</th><th>SERVIÇO</th>
+            <th>GUIA/CONTATO</th><th>NOME PAX</th><th>PAX</th><th>CLIENTE</th>
+            <th>OBSERVAÇÃO</th><th>VEÍCULO</th><th>PLACA</th><th>MOTORISTA/CONTATO</th>
+          </tr></thead>
+          <tbody><tr class="os-data-row">
+            <td class="os-num">${entry.numero || "---"}</td>
+            <td>${formatDateBR(entry.data)}</td>
+            <td>${entry.hora || "---"}</td>
+            <td>${entry.voo || "---"}</td>
+            <td class="os-wide-cell" style="white-space:pre-wrap">${entry.servico || "---"}</td>
+            <td style="white-space:nowrap">${entry.nome_guia || ""}${entry.tel_guia ? `<br/>${entry.tel_guia}` : ""}</td>
+            <td>${entry.nome_pax || "---"}</td>
+            <td class="os-pax">${entry.pax || "0"}</td>
+            <td>${entry.cliente?.nome || "---"}</td>
+            <td class="os-wide-cell os-obs-cell">${entry.observacao || "---"}</td>
+            <td>${entry.veiculo || "---"}</td>
+            <td>${entry.placa || "---"}</td>
+            <td style="white-space:nowrap">${entry.motorista || ""}${entry.contato_motorista ? `<br/>${entry.contato_motorista}` : ""}</td>
+          </tr></tbody>
+        </table>
+        <div class="os-footer"><p class="os-thanks">Obrigado pela preferência!</p></div>
+      </div>`;
+    const container = document.createElement("div");
+    container.id = "os-single-hidden";
+    container.style.cssText = "position:absolute;left:-9999px;top:0;width:1123px;";
+    container.innerHTML = html;
+    document.body.appendChild(container);
+    const filename = (entry.motorista || "OS").toUpperCase();
+    setTimeout(() => {
+      downloadInvoicePDF("os-single-hidden", filename, "l").finally(() => {
+        setTimeout(() => {
+          if (container.parentNode) document.body.removeChild(container);
+        }, 2000);
+      });
+    }, 100);
+  };
+
+  const handleBulkDownloadOS = async (selectedEntries) => {
+    const formatDateBR = (val) => {
+      if (!val) return "";
+      const parts = val.split("-");
+      if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      return val;
+    };
+    const empresa = data.empresa || {};
+    const grouped = {};
+    selectedEntries.forEach(entry => {
+      const fornecedor = (entry.fornecedor || "SEM_FORNECEDOR").toUpperCase();
+      const motorista = (entry.motorista || "SEM_MOTORISTA").toUpperCase();
+      if (!grouped[fornecedor]) grouped[fornecedor] = {};
+      if (!grouped[fornecedor][motorista]) grouped[fornecedor][motorista] = [];
+      grouped[fornecedor][motorista].push(entry);
+    });
+    const fornecedores = Object.keys(grouped);
+    for (const fornecedor of fornecedores) {
+      const motoristas = Object.keys(grouped[fornecedor]);
+      for (const motorista of motoristas) {
+        const entries = grouped[fornecedor][motorista].sort((a, b) => {
+          const ha = (a.hora || "").toLowerCase();
+          const hb = (b.hora || "").toLowerCase();
+          return ha.localeCompare(hb);
+        });
+        const rowsHtml = entries.map(entry => `
+          <tr class="os-data-row">
+            <td class="os-num">${entry.numero || "---"}</td>
+            <td>${formatDateBR(entry.data)}</td>
+            <td>${entry.hora || "---"}</td>
+            <td>${entry.voo || "---"}</td>
+            <td class="os-wide-cell" style="white-space:pre-wrap">${entry.servico || "---"}</td>
+            <td style="white-space:nowrap">${entry.nome_guia || ""}${entry.tel_guia ? `<br/>${entry.tel_guia}` : ""}</td>
+            <td>${entry.nome_pax || "---"}</td>
+            <td class="os-pax">${entry.pax || "0"}</td>
+            <td>${entry.cliente?.nome || "---"}</td>
+            <td class="os-wide-cell os-obs-cell">${entry.observacao || "---"}</td>
+            <td>${entry.veiculo || "---"}</td>
+            <td>${entry.placa || "---"}</td>
+            <td style="white-space:nowrap">${entry.motorista || ""}${entry.contato_motorista ? `<br/>${entry.contato_motorista}` : ""}</td>
+          </tr>
+        `).join("");
+        const html = `
+          <div class="os-paper landscape" style="width:1123px;margin:0;padding:0;font-family:Arial,sans-serif;">
+            <div class="os-header">
+              <div class="os-brand">
+                ${empresa.logo ? `<img src="${empresa.logo}" class="os-logo" alt="Logo" />` : ""}
+                <span class="os-company">${empresa.nome || "SUA EMPRESA"} - Ordem de Serviço - ${fornecedor}</span>
+              </div>
+            </div>
+            <table class="os-table">
+              <thead><tr>
+                <th>Nº</th><th>DATA</th><th>HORA</th><th>VOO</th><th>SERVIÇO</th>
+                <th>GUIA/CONTATO</th><th>NOME PAX</th><th>PAX</th><th>CLIENTE</th>
+                <th>OBSERVAÇÃO</th><th>VEÍCULO</th><th>PLACA</th><th>MOTORISTA/CONTATO</th>
+              </tr></thead>
+              <tbody>${rowsHtml}</tbody>
+            </table>
+            <div class="os-footer"><p class="os-thanks">Obrigado pela preferência!</p></div>
+          </div>`;
+        await new Promise((resolve) => {
+          const container = document.createElement("div");
+          container.id = "os-bulk-hidden";
+          container.style.cssText = "position:absolute;left:-9999px;top:0;width:1123px;";
+          container.innerHTML = html;
+          document.body.appendChild(container);
+          setTimeout(() => {
+            downloadInvoicePDF("os-bulk-hidden", motorista, "l").finally(() => {
+              setTimeout(() => {
+                if (container.parentNode) document.body.removeChild(container);
+                resolve();
+              }, 1500);
+            });
+          }, 200);
+        });
+      }
+    }
+  };
+
   const handleSaveSimulacao = (entries) => {
     const nova = {
       id: Date.now(),
@@ -827,6 +970,9 @@ function AuthenticatedApp({ onLogout }) {
             restoredEntries={restoredEntries}
             onClearRestored={() => setRestoredEntries([])}
             onSaveSimulacao={handleSaveSimulacao}
+            onPreviewOS={handlePreviewSingleOS}
+            onDownloadOS={handleDownloadSingleOS}
+            onBulkDownloadOS={handleBulkDownloadOS}
           />
         ) : null}
 

@@ -33,7 +33,6 @@ export default function ServicesModal({ onClose }) {
   const SortTh = ({ label, sortKey }) => (
     <th onClick={() => handleSort(sortKey)} className="sortable-th">
       {label}
-      {sortConfig.key === sortKey && <span className="sort-arrow">{sortConfig.dir === "asc" ? " ▲" : " ▼"}</span>}
     </th>
   );
 

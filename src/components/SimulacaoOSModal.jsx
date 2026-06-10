@@ -26,7 +26,7 @@ export default function SimulacaoOSModal({ data, onDelete, onRestore, onView, on
 
   const SortHeader = ({ children, sortKey }) => (
     <th onClick={() => handleSort(sortKey)} style={{ cursor: "pointer", userSelect: "none" }}>
-      {children} {sortConfig.key === sortKey ? (sortConfig.direction === "asc" ? " ▲" : " ▼") : ""}
+      {children}
     </th>
   );
 
