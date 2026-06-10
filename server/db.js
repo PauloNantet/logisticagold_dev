@@ -99,6 +99,17 @@ async function initDB() {
         created_at TEXT DEFAULT NOW()
       );
 
+      CREATE TABLE IF NOT EXISTS orcamentos (
+        id SERIAL PRIMARY KEY,
+        numero TEXT DEFAULT '',
+        data_emissao TEXT DEFAULT '',
+        validade TEXT DEFAULT '',
+        cliente TEXT DEFAULT '',
+        valor REAL DEFAULT 0,
+        full_data TEXT DEFAULT '{}',
+        created_at TEXT DEFAULT NOW()
+      );
+
       CREATE TABLE IF NOT EXISTS drivers (
         id SERIAL PRIMARY KEY,
         nome TEXT NOT NULL,
@@ -145,7 +156,7 @@ async function initDB() {
     const tables = [
       'users', 'clients', 'services', 'history', 'images',
       'settings', 'vehicles', 'service_orders', 'mapas',
-      'drivers', 'agenda_servicos'
+      'drivers', 'agenda_servicos', 'orcamentos'
     ];
     for (const table of tables) {
       await client.query(`

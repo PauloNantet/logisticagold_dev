@@ -17,6 +17,9 @@ import DriversModal from "./components/DriversModal";
 import LoginModal from "./components/LoginModal";
 import AdminPanel from "./components/AdminPanel";
 import AccountSettings from "./components/AccountSettings";
+import OrcamentoForm from "./components/OrcamentoForm";
+import OrcamentoPreview from "./components/OrcamentoPreview";
+import OrcamentoHistoryModal from "./components/OrcamentoHistoryModal";
 import { generateQrCode, downloadInvoicePDF } from "./utils/invoice";
 import { isLoggedIn, logoutUser, getCurrentUser, isAdmin, fetchMe } from "./utils/auth";
 import { api } from "./utils/api";
@@ -60,6 +63,16 @@ const INITIAL_OS_TEMPLATE = {
   motorista: "",
 };
 
+const INITIAL_ORCAMENTO_TEMPLATE = {
+  orcamento: { numero: "", data: getToday(), validade: "30" },
+  cliente: { nome: "", documento: "", email: "", endereco: "" },
+  responsavel: { nome: "", telefone: "", telefoneCustom: false, email: "" },
+  itens: [{ produto: "", descricao: "", valor: "", quantidade: "1" }],
+  desconto: { tipo: "porcentagem", valor: "" },
+  imposto: { tipo: "porcentagem", valor: "" },
+  observacoes: "",
+};
+
 function AuthenticatedApp({ onLogout }) {
   const [activeTab, setActiveTab] = useState("mapa");
   const [clients, setClients] = useState([]);
@@ -72,6 +85,8 @@ function AuthenticatedApp({ onLogout }) {
   const [mapaPreviewEntries, setMapaPreviewEntries] = useState([]);
   const [osPreviewEntries, setOsPreviewEntries] = useState([]);
   const [mapaHistory, setMapaHistory] = useState([]);
+  const [orcamentoHistory, setOrcamentoHistory] = useState([]);
+  const [orcamentoPreviewEntries, setOrcamentoPreviewEntries] = useState([]);
   const [savedSettings, setSavedSettings] = useState({ empresa: {}, pagamento: {}, tema: "white" });
   const [data, setData] = useState(() => ({
     ...INITIAL_DATA_TEMPLATE,
@@ -81,6 +96,12 @@ function AuthenticatedApp({ onLogout }) {
   }));
   const [osData, setOsData] = useState(() => ({
     ...INITIAL_OS_TEMPLATE,
+    empresa: {},
+    pagamento: {},
+    tema: "white"
+  }));
+  const [orcamentoData, setOrcamentoData] = useState(() => ({
+    ...INITIAL_ORCAMENTO_TEMPLATE,
     empresa: {},
     pagamento: {},
     tema: "white"
@@ -98,12 +119,15 @@ function AuthenticatedApp({ onLogout }) {
   const [showOSHistory, setShowOSHistory] = useState(false);
   const [showSimulacaoOS, setShowSimulacaoOS] = useState(false);
   const [showMapaHistory, setShowMapaHistory] = useState(false);
+  const [showOrcamentoHistory, setShowOrcamentoHistory] = useState(false);
   const [preview, setPreview] = useState(false);
   const [osPreview, setOsPreview] = useState(false);
   const [mapaPreview, setMapaPreview] = useState(false);
+  const [orcamentoPreview, setOrcamentoPreview] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const [osIsLocked, setOsIsLocked] = useState(false);
   const [mapaIsLocked, setMapaIsLocked] = useState(false);
+  const [orcamentoIsLocked, setOrcamentoIsLocked] = useState(false);
   const [restoredEntries, setRestoredEntries] = useState([]);
   const [isManualOSFlow, setIsManualOSFlow] = useState(false);
   const [osPreviewSource, setOsPreviewSource] = useState(null);
@@ -128,13 +152,19 @@ function AuthenticatedApp({ onLogout }) {
   });
   const [scrollToError, setScrollToError] = useState(0);
   const [osScrollToError, setOsScrollToError] = useState(0);
+  const [orcamentoFieldErrors, setOrcamentoFieldErrors] = useState({
+    clienteNome: false, clienteDocumento: false, clienteEmail: false, clienteEndereco: false,
+    responsavelNome: false, responsavelTelefone: false,
+    dataEmissao: false, itens: false, orcamentoNumero: false,
+  });
+  const [orcamentoScrollToError, setOrcamentoScrollToError] = useState(0);
 
   const user = getCurrentUser();
 
   useEffect(() => {
     async function loadAll() {
       try {
-        const [c, s, v, d, h, settings, os, mapas] = await Promise.all([
+        const [c, s, v, d, h, settings, os, mapas, orcs] = await Promise.all([
           api.get("/api/clients"),
           api.get("/api/services"),
           api.get("/api/vehicles"),
@@ -143,6 +173,7 @@ function AuthenticatedApp({ onLogout }) {
           api.get("/api/settings"),
           api.get("/api/service-orders"),
           api.get("/api/mapas"),
+          api.get("/api/orcamentos"),
         ]);
         setClients(c);
         setServices(s);
@@ -151,6 +182,7 @@ function AuthenticatedApp({ onLogout }) {
         setHistory(h);
         setOsHistory(os);
         setMapaHistory(mapas);
+        setOrcamentoHistory(orcs);
         setSavedSettings(settings);
         setData(prev => ({
           ...prev,
@@ -159,6 +191,12 @@ function AuthenticatedApp({ onLogout }) {
           tema: settings.tema || "white"
         }));
         setOsData(prev => ({
+          ...prev,
+          empresa: settings.empresa || {},
+          pagamento: settings.pagamento || {},
+          tema: settings.tema || "white"
+        }));
+        setOrcamentoData(prev => ({
           ...prev,
           empresa: settings.empresa || {},
           pagamento: settings.pagamento || {},
@@ -267,6 +305,12 @@ function AuthenticatedApp({ onLogout }) {
         tema: newSettings.tema || "white"
       }));
       setOsData(prev => ({
+        ...prev,
+        empresa: newSettings.empresa || {},
+        pagamento: newSettings.pagamento || {},
+        tema: newSettings.tema || "white"
+      }));
+      setOrcamentoData(prev => ({
         ...prev,
         empresa: newSettings.empresa || {},
         pagamento: newSettings.pagamento || {},
@@ -730,6 +774,141 @@ function AuthenticatedApp({ onLogout }) {
     }
   };
 
+  // ---- ORCAMENTO LOGIC ----
+  const orcamentoUpdate = (secao, campo, valor) => {
+    setOrcamentoData((prev) => {
+      if (!secao) return { ...prev, [campo]: valor };
+      return { ...prev, [secao]: { ...prev[secao], [campo]: valor } };
+    });
+  };
+
+  const orcamentoUpdateItem = (i, campo, valor) => {
+    setOrcamentoData((prev) => {
+      const novosItens = [...prev.itens];
+      novosItens[i] = { ...novosItens[i], [campo]: valor };
+      return { ...prev, itens: novosItens };
+    });
+  };
+
+  const orcamentoAddItem = () => {
+    setOrcamentoData((prev) => ({
+      ...prev,
+      itens: [...prev.itens, { produto: "", descricao: "", valor: "", quantidade: "1" }],
+    }));
+  };
+
+  const orcamentoRemoveItem = (index) => {
+    setOrcamentoData((prev) => {
+      const novosItens = [...prev.itens];
+      if (novosItens.length > 1) {
+        novosItens.splice(index, 1);
+      } else {
+        novosItens[0] = { produto: "", descricao: "", valor: "", quantidade: "1" };
+      }
+      return { ...prev, itens: novosItens };
+    });
+  };
+
+  const handleOrcamentoSubmit = (e) => {
+    e.preventDefault();
+    const errors = {
+      clienteNome: false,
+      clienteDocumento: false,
+      clienteEmail: false,
+      clienteEndereco: false,
+      responsavelNome: false,
+      responsavelTelefone: false,
+      dataEmissao: !orcamentoData.orcamento.data,
+      itens: !orcamentoData.itens.every(item => item.produto.trim() && item.descricao.trim() && item.valor && item.quantidade),
+      orcamentoNumero: !orcamentoData.orcamento.numero.trim(),
+    };
+    setOrcamentoFieldErrors(errors);
+    if (Object.values(errors).some(v => v)) {
+      setOrcamentoScrollToError(prev => prev + 1);
+      return;
+    }
+    setOrcamentoPreview(true);
+    window.scrollTo(0, 0);
+  };
+
+  const handleOrcamentoDownload = () => {
+    const rawNumber = orcamentoData.orcamento.numero.toString().split("/")[0] || "1";
+    const paddedNumber = rawNumber.padStart(3, '0');
+    const nomeCliente = (orcamentoData.cliente.nome || "Sem nome").replace(/[<>:"/\\|?*]/g, "");
+    const filename = `Orcamento ${rawNumber} - ${nomeCliente}`;
+    if (orcamentoIsLocked) {
+      downloadInvoicePDF("orcamento", filename);
+      return;
+    }
+    setOrcamentoIsLocked(true);
+    setOrcamentoData(prev => ({
+      ...prev,
+      orcamento: { ...prev.orcamento, numero: paddedNumber }
+    }));
+    setTimeout(() => {
+      downloadInvoicePDF("orcamento", filename);
+      const total = orcamentoData.itens.reduce((acc, item) => acc + (parseFloat(item.valor) || 0) * (parseFloat(item.quantidade) || 0), 0);
+      const descRaw = parseInt((orcamentoData.desconto?.valor || "").replace(/\D/g, ""), 10) || 0;
+      const desc = orcamentoData.desconto?.tipo === "porcentagem" ? total * (descRaw / 10000) : descRaw / 100;
+      const impRaw = parseInt((orcamentoData.imposto?.valor || "").replace(/\D/g, ""), 10) || 0;
+      const imp = orcamentoData.imposto?.tipo === "porcentagem" ? total * (impRaw / 10000) : impRaw / 100;
+      const finalVal = total - desc + imp;
+      const historyItem = {
+        numero: paddedNumber,
+        dataEmissao: orcamentoData.orcamento.data || getToday(),
+        validade: orcamentoData.orcamento.validade || "30",
+        cliente: orcamentoData.cliente.nome || "Não informado",
+        valor: finalVal,
+        fullData: { ...orcamentoData, orcamento: { ...orcamentoData.orcamento, numero: paddedNumber } }
+      };
+      api.post("/api/orcamentos", historyItem).then(saved => {
+        setOrcamentoHistory(prev => [saved, ...prev]);
+      }).catch(console.error);
+    }, 100);
+  };
+
+  const deleteOrcamentoHistoryItem = async (id) => {
+    try {
+      await api.del(`/api/orcamentos/${id}`);
+      setOrcamentoHistory(prev => prev.filter(item => item.id !== id));
+    } catch (err) {
+      console.error("Erro ao excluir orçamento:", err);
+    }
+  };
+
+  const restoreOrcamentoHistoryItem = async (fullData, isViewing = true) => {
+    if (isViewing) {
+      setOrcamentoData({ ...fullData, tema: fullData.tema || orcamentoData.tema || "white" });
+      setOrcamentoIsLocked(true);
+      setOrcamentoPreview(true);
+    } else {
+      const nextNum = getNextInvoiceNumber(orcamentoHistory);
+      setOrcamentoData({
+        ...fullData,
+        orcamento: { ...fullData.orcamento, numero: nextNum, data: getToday(), validade: fullData.orcamento?.validade || "30" },
+        tema: orcamentoData.tema
+      });
+      setOrcamentoIsLocked(false);
+      setOrcamentoPreview(false);
+    }
+    setShowOrcamentoHistory(false);
+  };
+
+  const clearOrcamentoFieldError = (field) => {
+    setOrcamentoFieldErrors(prev => ({ ...prev, [field]: false }));
+  };
+
+  const handleNewOrcamento = () => {
+    setOrcamentoData({
+      ...INITIAL_ORCAMENTO_TEMPLATE,
+      empresa: orcamentoData.empresa,
+      pagamento: orcamentoData.pagamento,
+      tema: orcamentoData.tema
+    });
+    setOrcamentoIsLocked(false);
+    setOrcamentoPreview(false);
+  };
+
   const handleLogout = () => {
     logoutUser();
     onLogout();
@@ -740,6 +919,7 @@ function AuthenticatedApp({ onLogout }) {
     setPreview(false);
     setOsPreview(false);
     setMapaPreview(false);
+    setOrcamentoPreview(false);
   };
 
   if (loading) return null;
@@ -754,37 +934,44 @@ function AuthenticatedApp({ onLogout }) {
             <button
               className={`tab-btn ${activeTab === "mapa" ? "active" : ""}`}
               onClick={() => switchTab("mapa")}
-              disabled={preview || osPreview || mapaPreview}
+              disabled={preview || osPreview || mapaPreview || orcamentoPreview}
             >
               🗺️ Mapa de Serviço
             </button>
             <button
               className={`tab-btn ${activeTab === "ordem-servico" ? "active" : ""}`}
               onClick={() => switchTab("ordem-servico")}
-              disabled={preview || osPreview || mapaPreview}
+              disabled={preview || osPreview || mapaPreview || orcamentoPreview}
             >
               🛠️ Ordem de Serviço
             </button>
             <button
               className={`tab-btn ${activeTab === "fatura" ? "active" : ""}`}
               onClick={() => switchTab("fatura")}
-              disabled={preview || osPreview || mapaPreview}
+              disabled={preview || osPreview || mapaPreview || orcamentoPreview}
             >
               📄 Fatura
+            </button>
+            <button
+              className={`tab-btn ${activeTab === "orcamento" ? "active" : ""}`}
+              onClick={() => switchTab("orcamento")}
+              disabled={preview || osPreview || mapaPreview || orcamentoPreview}
+            >
+              💰 Orçamento
             </button>
           </div>
         </div>
         <div className="header-actions">
           {user && <span className="user-badge">@{user.displayName || user.username}</span>}
           {isAdmin() && (
-            <button onClick={() => setShowAdmin(true)} className="admin-btn" title="Administrar Usuários" disabled={preview || osPreview || mapaPreview}>
+            <button onClick={() => setShowAdmin(true)} className="admin-btn" title="Administrar Usuários" disabled={preview || osPreview || mapaPreview || orcamentoPreview}>
               Admin
             </button>
           )}
-          <button onClick={() => setShowAccountSettings(true)} className="admin-btn" title="Ajustes da Conta" disabled={preview || osPreview || mapaPreview}>
+          <button onClick={() => setShowAccountSettings(true)} className="admin-btn" title="Ajustes da Conta" disabled={preview || osPreview || mapaPreview || orcamentoPreview}>
             Ajustes
           </button>
-          <button onClick={handleLogout} className="logout-btn" title="Sair" disabled={preview || osPreview || mapaPreview}>
+          <button onClick={handleLogout} className="logout-btn" title="Sair" disabled={preview || osPreview || mapaPreview || orcamentoPreview}>
             Sair
           </button>
         </div>
@@ -792,7 +979,7 @@ function AuthenticatedApp({ onLogout }) {
 
       <main className="main-content">
         {/* Action buttons - shared */}
-        {!preview && !osPreview && !mapaPreview && (
+        {!preview && !osPreview && !mapaPreview && !orcamentoPreview && (
           <div className="action-buttons-container no-print">
             <button onClick={() => setShowSettings(true)} className="action-button settings-toggle" title="Meus Dados">
               <span className="icon">👤</span><span className="label">Meus dados</span>
@@ -827,6 +1014,11 @@ function AuthenticatedApp({ onLogout }) {
             {activeTab === "mapa" && (
               <button onClick={() => setShowMapaHistory(true)} className="action-button history-toggle" title="Histórico de Mapas">
                 <span className="icon">🗺️</span><span className="label">Histórico de Mapas</span>
+              </button>
+            )}
+            {activeTab === "orcamento" && (
+              <button onClick={() => setShowOrcamentoHistory(true)} className="action-button history-toggle" title="Histórico de Orçamentos">
+                <span className="icon">📋</span><span className="label">Histórico de Orçamentos</span>
               </button>
             )}
           </div>
@@ -881,6 +1073,15 @@ function AuthenticatedApp({ onLogout }) {
             onView={handleViewMapa}
             onDelete={handleDeleteMapa}
             onClose={() => setShowMapaHistory(false)}
+          />
+        )}
+
+        {showOrcamentoHistory && (
+          <OrcamentoHistoryModal
+            history={orcamentoHistory}
+            onDelete={deleteOrcamentoHistoryItem}
+            onRestore={restoreOrcamentoHistoryItem}
+            onClose={() => setShowOrcamentoHistory(false)}
           />
         )}
 
@@ -994,6 +1195,68 @@ function AuthenticatedApp({ onLogout }) {
             vehicles={vehicles}
             drivers={drivers}
             onSubmit={handleMapaSubmit}
+          />
+        ) : null}
+
+        {/* ORCAMENTO */}
+        {activeTab === "orcamento" && orcamentoPreview ? (
+          <OrcamentoPreview
+            data={orcamentoData}
+            total={orcamentoData.itens.reduce((acc, item) => acc + (parseFloat(item.valor) || 0) * (parseFloat(item.quantidade) || 0), 0)}
+            descontoCalculado={(() => {
+              const t = orcamentoData.itens.reduce((acc, item) => acc + (parseFloat(item.valor) || 0) * (parseFloat(item.quantidade) || 0), 0);
+              const raw = parseInt((orcamentoData.desconto.valor || "").replace(/\D/g, ""), 10) || 0;
+              return orcamentoData.desconto.tipo === "porcentagem" ? t * (raw / 10000) : raw / 100;
+            })()}
+            impostoCalculado={(() => {
+              const t = orcamentoData.itens.reduce((acc, item) => acc + (parseFloat(item.valor) || 0) * (parseFloat(item.quantidade) || 0), 0);
+              const raw = parseInt((orcamentoData.imposto.valor || "").replace(/\D/g, ""), 10) || 0;
+              return orcamentoData.imposto.tipo === "porcentagem" ? t * (raw / 10000) : raw / 100;
+            })()}
+            finalTotal={(() => {
+              const t = orcamentoData.itens.reduce((acc, item) => acc + (parseFloat(item.valor) || 0) * (parseFloat(item.quantidade) || 0), 0);
+              const dr = parseInt((orcamentoData.desconto.valor || "").replace(/\D/g, ""), 10) || 0;
+              const d = orcamentoData.desconto.tipo === "porcentagem" ? t * (dr / 10000) : dr / 100;
+              const ir = parseInt((orcamentoData.imposto.valor || "").replace(/\D/g, ""), 10) || 0;
+              const i = orcamentoData.imposto.tipo === "porcentagem" ? t * (ir / 10000) : ir / 100;
+              return t - d + i;
+            })()}
+            isLocked={orcamentoIsLocked}
+            onBack={orcamentoIsLocked ? handleNewOrcamento : () => setOrcamentoPreview(false)}
+            onDownload={handleOrcamentoDownload}
+            onBackToHistory={() => { setOrcamentoPreview(false); setShowOrcamentoHistory(true); }}
+          />
+        ) : activeTab === "orcamento" ? (
+          <OrcamentoForm
+            data={orcamentoData}
+            clients={clients}
+            total={orcamentoData.itens.reduce((acc, item) => acc + (parseFloat(item.valor) || 0) * (parseFloat(item.quantidade) || 0), 0)}
+            descontoCalculado={(() => {
+              const t = orcamentoData.itens.reduce((acc, item) => acc + (parseFloat(item.valor) || 0) * (parseFloat(item.quantidade) || 0), 0);
+              const raw = parseInt((orcamentoData.desconto.valor || "").replace(/\D/g, ""), 10) || 0;
+              return orcamentoData.desconto.tipo === "porcentagem" ? t * (raw / 10000) : raw / 100;
+            })()}
+            impostoCalculado={(() => {
+              const t = orcamentoData.itens.reduce((acc, item) => acc + (parseFloat(item.valor) || 0) * (parseFloat(item.quantidade) || 0), 0);
+              const raw = parseInt((orcamentoData.imposto.valor || "").replace(/\D/g, ""), 10) || 0;
+              return orcamentoData.imposto.tipo === "porcentagem" ? t * (raw / 10000) : raw / 100;
+            })()}
+            finalTotal={(() => {
+              const t = orcamentoData.itens.reduce((acc, item) => acc + (parseFloat(item.valor) || 0) * (parseFloat(item.quantidade) || 0), 0);
+              const dr = parseInt((orcamentoData.desconto.valor || "").replace(/\D/g, ""), 10) || 0;
+              const d = orcamentoData.desconto.tipo === "porcentagem" ? t * (dr / 10000) : dr / 100;
+              const ir = parseInt((orcamentoData.imposto.valor || "").replace(/\D/g, ""), 10) || 0;
+              const i = orcamentoData.imposto.tipo === "porcentagem" ? t * (ir / 10000) : ir / 100;
+              return t - d + i;
+            })()}
+            update={orcamentoUpdate}
+            updateItem={orcamentoUpdateItem}
+            addItem={orcamentoAddItem}
+            removeItem={orcamentoRemoveItem}
+            onSubmit={handleOrcamentoSubmit}
+            fieldErrors={orcamentoFieldErrors}
+            clearFieldError={clearOrcamentoFieldError}
+            scrollToError={orcamentoScrollToError}
           />
         ) : null}
       </main>

@@ -16,6 +16,7 @@ import mapasRoutes from "./routes/mapas.js";
 import agendaRoutes from "./routes/agenda.js";
 import driversRoutes from "./routes/drivers.js";
 import adminRoutes from "./routes/admin.js";
+import orcamentosRoutes from "./routes/orcamentos.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,6 +43,7 @@ app.use("/api/mapas", mapasRoutes);
 app.use("/api/agenda", agendaRoutes);
 app.use("/api/drivers", driversRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/orcamentos", orcamentosRoutes);
 
 const distPath = path.join(__dirname, "..", "dist");
 const indexHtml = path.join(distPath, "index.html");
