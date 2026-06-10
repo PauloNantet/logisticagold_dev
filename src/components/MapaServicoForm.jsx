@@ -698,14 +698,22 @@ export default function MapaServicoForm({
                 </span>
 
                 <div style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
-                  <button type="button" onClick={() => setShowFinanceiro(prev => !prev)} className="action-tab-btn" style={{ padding: "0 12px", fontWeight: 700, color: showFinanceiro ? "var(--primary)" : "var(--text-placeholder)" }}>
+                  <button 
+                    type="button" 
+                    onClick={() => setShowFinanceiro(prev => !prev)} 
+                    className="action-tab-btn" 
+                    style={{ 
+                      color: showFinanceiro ? "var(--primary)" : "inherit", 
+                      borderColor: showFinanceiro ? "var(--primary)" : "inherit" 
+                    }}
+                  >
                     R$
                   </button>
                   <button type="button" onClick={() => onSubmit(sortedEntries)} className="action-tab-btn" style={{ whiteSpace: "nowrap" }}>
                     Gerar Mapa
                   </button>
                   <button type="button" onClick={() => { setShowForm(true); setEditingId(null); setEntry({ fornecedor: "", numero: "", data: "", hora: "", voo: "", servico: "", nome_guia: "", tel_guia: "", nome_pax: "", pax: "", file_evento: "", cliente: { nome: "", documento: "", email: "", endereco: "" }, observacao: "", veiculo: "", placa: "", motorista: "", contato_motorista: "", valor_pagar: "", valor_receber: "" }); }} className="action-tab-btn">
-              Agendar Serviço
+                    Agendar Serviço
                   </button>
                 </div>
               </div>
