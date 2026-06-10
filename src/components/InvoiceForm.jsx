@@ -615,52 +615,92 @@ export default function InvoiceForm({ data, clients, services, total, descontoCa
           <h3 className="section-title">Desconto & Imposto</h3>
           <div className="discount-tax-grid">
             <div>
-              <label className="input-label">Desconto</label>
               <div className="discount-input-row">
-                <span className="discount-currency-sign">R$</span>
-                <input
-                  type="text"
-                  value={(() => {
-                    if (!data.desconto.valor) return "";
-                    const num = parseFloat(data.desconto.valor);
-                    return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                  })()}
-                  onChange={(e) => {
-                    const d = e.target.value.replace(/\D/g, "");
-                    const num = d ? (parseFloat(d) / 100).toString() : "";
-                    update("desconto", "valor", num);
-                  }}
-                  placeholder="R$ 0,00"
-                  className="discount-value-input"
-                />
-              </div>
-              <div className="calc-hint discount-hint">
-                  – {descontoCalculado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                <div className="discount-type-toggle">
+                  <button
+                    type="button"
+                    onClick={() => { update("desconto", "tipo", "porcentagem"); update("desconto", "valor", ""); }}
+                    className={`discount-type-btn ${data.desconto.tipo === "porcentagem" ? "active" : ""}`}
+                  >
+                    %
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { update("desconto", "tipo", "fixed"); update("desconto", "valor", ""); }}
+                    className={`discount-type-btn ${data.desconto.tipo === "fixed" ? "active" : ""}`}
+                  >
+                    R$
+                  </button>
                 </div>
+                <div style={{ flex: 1 }}>
+                  <label className="input-label">Desconto</label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={(() => {
+                      const v = data.desconto.valor || "";
+                      if (!v) return "";
+                      const digits = v.toString().replace(/\D/g, "");
+                      if (!digits) return "";
+                      const num = parseInt(digits, 10) / 100;
+                      return num.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    })()}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, "");
+                      update("desconto", "valor", digits);
+                    }}
+                    placeholder={"0,00"}
+                    className="discount-value-input"
+                  />
+                  <div className="calc-hint discount-hint">
+                    – {descontoCalculado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </div>
+                </div>
+              </div>
             </div>
             <div>
-              <label className="input-label">Imposto</label>
               <div className="discount-input-row">
-                <span className="discount-currency-sign">R$</span>
-                <input
-                  type="text"
-                  value={(() => {
-                    if (!data.imposto.valor) return "";
-                    const num = parseFloat(data.imposto.valor);
-                    return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                  })()}
-                  onChange={(e) => {
-                    const d = e.target.value.replace(/\D/g, "");
-                    const num = d ? (parseFloat(d) / 100).toString() : "";
-                    update("imposto", "valor", num);
-                  }}
-                  placeholder="R$ 0,00"
-                  className="discount-value-input"
-                />
-              </div>
-              <div className="calc-hint tax-hint">
-                  + {impostoCalculado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                <div className="discount-type-toggle">
+                  <button
+                    type="button"
+                    onClick={() => { update("imposto", "tipo", "porcentagem"); update("imposto", "valor", ""); }}
+                    className={`discount-type-btn ${data.imposto.tipo === "porcentagem" ? "active" : ""}`}
+                  >
+                    %
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { update("imposto", "tipo", "fixed"); update("imposto", "valor", ""); }}
+                    className={`discount-type-btn ${data.imposto.tipo === "fixed" ? "active" : ""}`}
+                  >
+                    R$
+                  </button>
                 </div>
+                <div style={{ flex: 1 }}>
+                  <label className="input-label">Imposto</label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={(() => {
+                      const v = data.imposto.valor || "";
+                      if (!v) return "";
+                      const digits = v.toString().replace(/\D/g, "");
+                      if (!digits) return "";
+                      const num = parseInt(digits, 10) / 100;
+                      return num.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    })()}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, "");
+                      update("imposto", "valor", digits);
+                    }}
+                    placeholder={"0,00"}
+                    className="discount-value-input"
+                  />
+                  <div className="calc-hint tax-hint">
+                    + {impostoCalculado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <div className="final-total-row">

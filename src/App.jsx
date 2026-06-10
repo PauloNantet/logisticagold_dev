@@ -234,19 +234,19 @@ function AuthenticatedApp({ onLogout }) {
   }, [data.itens]);
 
   const descontoCalculado = useMemo(() => {
-    const val = parseFloat(data.desconto.valor.replace(",", ".")) || 0;
+    const raw = parseInt((data.desconto.valor || "").toString().replace(/\D/g, ""), 10) || 0;
     if (data.desconto.tipo === "porcentagem") {
-      return total * (val / 100);
+      return total * (raw / 10000);
     }
-    return val;
+    return raw / 100;
   }, [total, data.desconto.tipo, data.desconto.valor]);
 
   const impostoCalculado = useMemo(() => {
-    const val = parseFloat(data.imposto.valor.replace(",", ".")) || 0;
+    const raw = parseInt((data.imposto.valor || "").toString().replace(/\D/g, ""), 10) || 0;
     if (data.imposto.tipo === "porcentagem") {
-      return total * (val / 100);
+      return total * (raw / 10000);
     }
-    return val;
+    return raw / 100;
   }, [total, data.imposto.tipo, data.imposto.valor]);
 
   const finalTotal = useMemo(() => {
@@ -882,10 +882,8 @@ function AuthenticatedApp({ onLogout }) {
       setOrcamentoIsLocked(true);
       setOrcamentoPreview(true);
     } else {
-      const nextNum = getNextInvoiceNumber(orcamentoHistory);
       setOrcamentoData({
         ...fullData,
-        orcamento: { ...fullData.orcamento, numero: nextNum, data: getToday(), validade: fullData.orcamento?.validade || "30" },
         tema: orcamentoData.tema
       });
       setOrcamentoIsLocked(false);
