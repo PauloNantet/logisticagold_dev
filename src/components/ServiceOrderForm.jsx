@@ -5,6 +5,7 @@ import ConfirmDialog from "./ConfirmDialog";
 
 const formatDateBR = (val) => {
   if (!val) return "";
+  if (val.includes("/")) return val;
   const parts = val.split("-");
   if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
   return val;
@@ -160,6 +161,64 @@ const ManualOSModal = ({ clients, vehicles, drivers = [], onSubmit, onClose, ini
   const updateEntry = (field, value) => setEntry(prev => ({ ...prev, [field]: value }));
   const updateEntryClient = (field, value) => setEntry(prev => ({ ...prev, cliente: { ...prev.cliente, [field]: value } }));
 
+  const handleDataChange = (e) => {
+    let digits = e.target.value.replace(/\D/g, "").slice(0, 8);
+    let formatted = "";
+    if (digits.length > 0) {
+      formatted = digits.slice(0, 2);
+      if (digits.length > 2) {
+        const month = parseInt(digits.slice(2, 4), 10);
+        if (month > 12) digits = digits.slice(0, 2) + "12" + digits.slice(4);
+        if (month === 0 && digits.length >= 4) digits = digits.slice(0, 2) + "01" + digits.slice(4);
+        formatted = digits.slice(0, 2) + "/" + digits.slice(2, 4);
+      }
+      if (digits.length > 4) {
+        const day = parseInt(digits.slice(0, 2), 10);
+        const month = parseInt(digits.slice(2, 4), 10);
+        const maxDays = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+        const limit = maxDays[month - 1] || 31;
+        if (day > limit) digits = limit.toString().padStart(2, "0") + digits.slice(2);
+        if (day === 0 && digits.length >= 2) digits = "01" + digits.slice(2);
+        formatted = digits.slice(0, 2) + "/" + digits.slice(2, 4) + "/" + digits.slice(4);
+      }
+    }
+    setEntry(prev => ({ ...prev, data: formatted }));
+    setFormErrors(prev => ({ ...prev, data: false }));
+  };
+
+  const handleDataBlur = () => {
+    const d = entry.data.replace(/\D/g, "");
+    if (d.length > 0 && d.length < 8) {
+      setEntry(prev => ({ ...prev, data: "" }));
+    }
+  };
+
+  const handleHoraChange = (e) => {
+    let digits = e.target.value.replace(/\D/g, "").slice(0, 4);
+    let formatted = "";
+    if (digits.length > 0) {
+      formatted = digits.slice(0, 2);
+      if (digits.length > 2) {
+        const hours = parseInt(digits.slice(0, 2), 10);
+        if (hours > 23) digits = "23" + digits.slice(2);
+        formatted = digits.slice(0, 2) + ":" + digits.slice(2, 4);
+      }
+      if (digits.length === 4) {
+        const mins = parseInt(digits.slice(2, 4), 10);
+        if (mins > 59) digits = digits.slice(0, 2) + "59";
+        formatted = digits.slice(0, 2) + ":" + digits.slice(2, 4);
+      }
+    }
+    setEntry(prev => ({ ...prev, hora: formatted }));
+  };
+
+  const handleHoraBlur = () => {
+    const h = entry.hora.replace(/\D/g, "");
+    if (h.length > 0 && h.length < 4) {
+      setEntry(prev => ({ ...prev, hora: "" }));
+    }
+  };
+
   const handleClientNameChange = (val) => {
     updateEntryClient("nome", val);
     if (val.length > 0) {
@@ -279,7 +338,12 @@ const ManualOSModal = ({ clients, vehicles, drivers = [], onSubmit, onClose, ini
   };
 
   const handleEdit = (idx) => {
-    setEntry({ ...entries[idx], cliente: { ...entries[idx].cliente } });
+    const item = entries[idx];
+    setEntry({
+      ...item,
+      data: item.data ? (item.data.includes("-") ? formatDateBR(item.data) : item.data) : "",
+      cliente: { ...item.cliente },
+    });
     setEditingIdx(idx);
     setTimeout(() => {
       if (formRef.current) {
@@ -316,7 +380,7 @@ const ManualOSModal = ({ clients, vehicles, drivers = [], onSubmit, onClose, ini
             }
           }} className="modal-close" style={{ background: "transparent", border: "none", fontSize: 24, cursor: "pointer", color: "var(--text-placeholder)" }}>✕</button>
         </div>
-        <div className="modal-body" ref={formRef}>
+        <div className="modal-body uppercase-form" ref={formRef}>
           <div className="mapa-top-grid">
             <div className={`input-group${formErrors.fornecedor ? ' input-error' : ''}`}>
               <label className="input-label">Fornecedor</label>
@@ -328,11 +392,11 @@ const ManualOSModal = ({ clients, vehicles, drivers = [], onSubmit, onClose, ini
             </div>
             <div className={`input-group${formErrors.data ? ' input-error' : ''}`}>
               <label className="input-label">Data</label>
-              <input ref={dataRef} type="date" value={entry.data} onChange={(e) => { updateEntry("data", e.target.value); setFormErrors(prev => ({ ...prev, data: false })); }} className="custom-input" />
+              <input ref={dataRef} type="text" value={entry.data} onChange={handleDataChange} onBlur={handleDataBlur} placeholder="DD/MM/AAAA" maxLength={10} className="custom-input" />
             </div>
             <div className="input-group">
               <label className="input-label">Hora</label>
-              <input type="time" value={entry.hora} onChange={(e) => updateEntry("hora", e.target.value)} className="custom-input" />
+              <input type="text" value={entry.hora} onChange={handleHoraChange} onBlur={handleHoraBlur} placeholder="HH:MM" maxLength={5} className="custom-input" />
             </div>
             <div className="input-group">
               <label className="input-label">Voo</label>
@@ -415,8 +479,8 @@ const ManualOSModal = ({ clients, vehicles, drivers = [], onSubmit, onClose, ini
             </div>
           </div>
 
-          <div className="form-actions-standard" style={{ marginTop: 16 }}>
-            <button type="button" onClick={handleAdd} className="submit-btn" style={{ background: "transparent" }}>
+          <div className="form-actions-standard os-manual-actions" style={{ marginTop: 16 }}>
+            <button type="button" onClick={handleAdd} className="submit-btn">
               {editingIdx !== null ? "Atualizar Serviço" : "Adicionar Serviço"}
             </button>
             <button type="button" onClick={handleGerarOS} className="submit-btn" style={{ marginLeft: 8 }}>
@@ -513,7 +577,7 @@ const ManualOSModal = ({ clients, vehicles, drivers = [], onSubmit, onClose, ini
         />
       )}
       {alertMessage && (
-        <ConfirmDialog message={alertMessage} onConfirm={() => setAlertMessage("")} onCancel={() => setAlertMessage("")} confirmText="OK" cancelText="OK" />
+        <ConfirmDialog message={alertMessage} onConfirm={() => setAlertMessage("")} confirmText="OK" singleButton />
       )}
     </div>
   );

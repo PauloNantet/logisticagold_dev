@@ -83,6 +83,7 @@ function AuthenticatedApp({ onLogout }) {
   const [osHistory, setOsHistory] = useState([]);
   const [mapaEntries, setMapaEntries] = useState([]);
   const [mapaPreviewEntries, setMapaPreviewEntries] = useState([]);
+  const [mapaShowFinanceiro, setMapaShowFinanceiro] = useState(false);
   const [osPreviewEntries, setOsPreviewEntries] = useState([]);
   const [mapaHistory, setMapaHistory] = useState([]);
   const [orcamentoHistory, setOrcamentoHistory] = useState([]);
@@ -722,9 +723,10 @@ function AuthenticatedApp({ onLogout }) {
   };
 
   // ---- MAPA LOGIC ----
-  const handleMapaSubmit = (filteredEntries) => {
+  const handleMapaSubmit = (filteredEntries, showFinanceiro = false) => {
     if (!filteredEntries || filteredEntries.length === 0) return;
     setMapaPreviewEntries(filteredEntries);
+    setMapaShowFinanceiro(showFinanceiro);
     setMapaPreview(true);
     window.scrollTo(0, 0);
   };
@@ -1179,6 +1181,7 @@ function AuthenticatedApp({ onLogout }) {
           <MapaServicoPreview
             entries={mapaPreviewEntries}
             empresa={data.empresa}
+            showFinanceiro={mapaShowFinanceiro}
             isLocked={mapaIsLocked}
             onBack={mapaIsLocked ? handleNewMapa : () => setMapaPreview(false)}
             onDownload={handleMapaDownload}

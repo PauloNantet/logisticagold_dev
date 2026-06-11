@@ -4,6 +4,7 @@ import ConfirmDialog from "./ConfirmDialog";
 
 const formatDateBR = (val) => {
   if (!val) return "";
+  if (val.includes("/")) return val;
   const parts = val.split("-");
   if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
   return val;
@@ -210,6 +211,64 @@ export default function MapaServicoForm({
     setEntry(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleDataChange = (e) => {
+    let digits = e.target.value.replace(/\D/g, "").slice(0, 8);
+    let formatted = "";
+    if (digits.length > 0) {
+      formatted = digits.slice(0, 2);
+      if (digits.length > 2) {
+        const month = parseInt(digits.slice(2, 4), 10);
+        if (month > 12) digits = digits.slice(0, 2) + "12" + digits.slice(4);
+        if (month === 0 && digits.length >= 4) digits = digits.slice(0, 2) + "01" + digits.slice(4);
+        formatted = digits.slice(0, 2) + "/" + digits.slice(2, 4);
+      }
+      if (digits.length > 4) {
+        const day = parseInt(digits.slice(0, 2), 10);
+        const month = parseInt(digits.slice(2, 4), 10);
+        const maxDays = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+        const limit = maxDays[month - 1] || 31;
+        if (day > limit) digits = limit.toString().padStart(2, "0") + digits.slice(2);
+        if (day === 0 && digits.length >= 2) digits = "01" + digits.slice(2);
+        formatted = digits.slice(0, 2) + "/" + digits.slice(2, 4) + "/" + digits.slice(4);
+      }
+    }
+    setEntry(prev => ({ ...prev, data: formatted }));
+    setFormErrors(prev => ({ ...prev, data: false }));
+  };
+
+  const handleDataBlur = () => {
+    const d = entry.data.replace(/\D/g, "");
+    if (d.length > 0 && d.length < 8) {
+      setEntry(prev => ({ ...prev, data: "" }));
+    }
+  };
+
+  const handleHoraChange = (e) => {
+    let digits = e.target.value.replace(/\D/g, "").slice(0, 4);
+    let formatted = "";
+    if (digits.length > 0) {
+      formatted = digits.slice(0, 2);
+      if (digits.length > 2) {
+        const hours = parseInt(digits.slice(0, 2), 10);
+        if (hours > 23) digits = "23" + digits.slice(2);
+        formatted = digits.slice(0, 2) + ":" + digits.slice(2, 4);
+      }
+      if (digits.length === 4) {
+        const mins = parseInt(digits.slice(2, 4), 10);
+        if (mins > 59) digits = digits.slice(0, 2) + "59";
+        formatted = digits.slice(0, 2) + ":" + digits.slice(2, 4);
+      }
+    }
+    setEntry(prev => ({ ...prev, hora: formatted }));
+  };
+
+  const handleHoraBlur = () => {
+    const h = entry.hora.replace(/\D/g, "");
+    if (h.length > 0 && h.length < 4) {
+      setEntry(prev => ({ ...prev, hora: "" }));
+    }
+  };
+
   const updateEntryOs = (field, value) => {
     setEntry(prev => ({ ...prev, os: { ...prev.os, [field]: value } }));
   };
@@ -402,7 +461,7 @@ export default function MapaServicoForm({
     setEntry({
       fornecedor: item.fornecedor || "",
       numero: item.numero || "",
-      data: item.data || "",
+      data: item.data ? (item.data.includes("-") ? formatDateBR(item.data) : item.data) : "",
       hora: item.hora || "",
       voo: item.voo || "",
       servico: item.servico || "",
@@ -449,7 +508,7 @@ export default function MapaServicoForm({
     const matchesMotorista = exclude === "motorista" || motoristaFilter.length === 0 ||
       motoristaFilter.some(m => (e.motorista || "").toLowerCase() === m.toLowerCase());
     const matchesData = exclude === "data" || dataFilter.length === 0 ||
-      dataFilter.some(d => (e.data || "") === d);
+      dataFilter.some(d => formatDateBR(e.data || "") === d);
     return matchesFornecedor && matchesFileEvento && matchesMotorista && matchesData;
   });
 
@@ -535,16 +594,16 @@ export default function MapaServicoForm({
 
         {/* CURRENT ENTRY FORM */}
         {showForm && (
-        <section className="section-card" ref={formRef}>
+        <section className="section-card uppercase-form" ref={formRef}>
           <h3 className="section-title">{editingId ? "Editando Serviço" : "Novo Serviço"}</h3>
           <div className="mapa-top-grid">
             <InputField label="Fornecedor" value={entry.fornecedor} onChange={(e) => { updateEntry("fornecedor", e.target.value); setFormErrors(prev => ({ ...prev, fornecedor: false })); }} placeholder="Nome do fornecedor" error={formErrors.fornecedor} inputRef={fornecedorRef} />
             <InputField label="Nº" value={entry.numero} onChange={(e) => { updateEntry("numero", e.target.value); setFormErrors(prev => ({ ...prev, numero: false })); }} placeholder="Número" error={formErrors.numero} inputRef={numeroRef} />
             <div className={`input-group${formErrors.data ? ' input-error' : ''}`}>
               <label className="input-label">Data</label>
-              <input ref={dataRef} type="date" value={entry.data} onChange={(e) => { updateEntry("data", e.target.value); setFormErrors(prev => ({ ...prev, data: false })); }} className="custom-input" />
+              <input ref={dataRef} type="text" value={entry.data} onChange={handleDataChange} onBlur={handleDataBlur} placeholder="DD/MM/AAAA" maxLength={10} className="custom-input" />
             </div>
-            <InputField label="Hora" type="time" value={entry.hora} onChange={(e) => updateEntry("hora", e.target.value)} placeholder="00:00" />
+            <InputField label="Hora" type="text" value={entry.hora} onChange={handleHoraChange} onBlur={handleHoraBlur} placeholder="HH:MM" maxLength={5} />
             <InputField label="Voo" value={entry.voo} onChange={(e) => updateEntry("voo", e.target.value)} placeholder="Ex: B2010" />
           </div>
             <div className="section-grid">
@@ -674,7 +733,7 @@ export default function MapaServicoForm({
                 </div>
               </div>
           </div>
-          <div className="form-actions-standard" style={{ marginTop: 12 }}>
+          <div className="form-actions-standard mapa-form-actions" style={{ marginTop: 12 }}>
             <button type="button" onClick={addOrUpdateEntry} className="submit-btn">
               {editingId ? "Atualizar" : "Adicionar"}
             </button>
@@ -698,18 +757,14 @@ export default function MapaServicoForm({
                 </span>
 
                 <div style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
-                  <button 
-                    type="button" 
-                    onClick={() => setShowFinanceiro(prev => !prev)} 
-                    className="action-tab-btn" 
-                    style={{ 
-                      color: showFinanceiro ? "var(--primary)" : "inherit", 
-                      borderColor: showFinanceiro ? "var(--primary)" : "inherit" 
-                    }}
+                  <button
+                    type="button"
+                    onClick={() => setShowFinanceiro(prev => !prev)}
+                    className={`action-tab-btn${showFinanceiro ? " active" : ""}`}
                   >
                     R$
                   </button>
-                  <button type="button" onClick={() => onSubmit(sortedEntries)} className="action-tab-btn" style={{ whiteSpace: "nowrap" }}>
+                  <button type="button" onClick={() => onSubmit(sortedEntries, showFinanceiro)} className="action-tab-btn" style={{ whiteSpace: "nowrap" }}>
                     Gerar Mapa
                   </button>
                   <button type="button" onClick={() => { setShowForm(true); setEditingId(null); setEntry({ fornecedor: "", numero: "", data: "", hora: "", voo: "", servico: "", nome_guia: "", tel_guia: "", nome_pax: "", pax: "", file_evento: "", cliente: { nome: "", documento: "", email: "", endereco: "" }, observacao: "", veiculo: "", placa: "", motorista: "", contato_motorista: "", valor_pagar: "", valor_receber: "" }); }} className="action-tab-btn">
@@ -774,7 +829,7 @@ export default function MapaServicoForm({
                           📋 Todas as datas
                         </button>
                         <div style={{ height: 1, background: "var(--border-color)", margin: "8px 0" }} />
-                        {[...new Set(filterEntries(entries, "data").map(e => e.data).filter(Boolean))].sort().reverse().map(d => {
+                        {[...new Set(filterEntries(entries, "data").map(e => formatDateBR(e.data)).filter(Boolean))].sort().reverse().map(d => {
                           const isSelected = dataFilter.includes(d);
                           return (
                             <button key={d} type="button" onClick={() => {

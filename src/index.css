@@ -161,6 +161,12 @@ body {
   background-color: rgba(212, 175, 55, 0.05);
 }
 
+.action-tab-btn.active {
+  background-color: var(--primary-dark);
+  border-color: var(--primary-dark);
+  color: #000000;
+}
+
 .tab-btn.active {
   background-color: var(--primary);
   border-color: var(--primary);
@@ -316,6 +322,9 @@ input:focus,
 select:focus,
 textarea:focus {
   border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.25) !important;
+  background-color: rgba(212, 175, 55, 0.03) !important;
+  outline: none !important;
 }
 
 .input-error input,
@@ -618,6 +627,29 @@ td {
 .os-paper .os-table .os-obs-cell {
   white-space: pre-wrap;
   line-height: 1.3;
+}
+
+.os-paper.with-financeiro .os-table {
+  font-size: 9px;
+}
+
+.os-paper.with-financeiro .os-table thead th {
+  font-size: 8px !important;
+  padding: 3px 2px !important;
+  letter-spacing: 0;
+}
+
+.os-paper.with-financeiro .os-table tbody td {
+  padding: 3px 2px !important;
+  font-size: 9px;
+}
+
+.os-paper.with-financeiro .os-table .os-wide-cell {
+  min-width: 90px;
+}
+
+.os-paper.with-financeiro {
+  padding: 20px 24px;
 }
 
 .os-paper .os-footer {
@@ -936,6 +968,7 @@ td {
   text-align: left;
   padding: 12px 10px !important;
   border-bottom: 2px solid var(--primary) !important;
+  white-space: nowrap !important;
 }
 
 .spreadsheet-table td {
@@ -1168,6 +1201,31 @@ td {
   background-color: var(--primary);
   border-color: var(--primary);
   color: #ffffff !important;
+}
+
+.mapa-form-actions .submit-btn,
+.mapa-form-actions .back-btn {
+  background-color: transparent !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-secondary) !important;
+  padding: 10px 28px !important;
+  border-radius: 8px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.mapa-form-actions .submit-btn:hover,
+.mapa-form-actions .submit-btn:focus,
+.mapa-form-actions .back-btn:hover,
+.mapa-form-actions .back-btn:focus {
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+  background-color: rgba(212, 175, 55, 0.05) !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 .history-back-btn {
@@ -1803,6 +1861,29 @@ td {
   transform: translateY(-4px);
 }
 
+.os-manual-actions .submit-btn {
+  background-color: transparent !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-secondary) !important;
+  padding: 10px 28px !important;
+  border-radius: 8px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  box-shadow: none !important;
+  transform: none !important;
+  width: auto !important;
+}
+
+.os-manual-actions .submit-btn:hover,
+.os-manual-actions .submit-btn:focus {
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+  background-color: rgba(212, 175, 55, 0.05) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
 /* RESPONSIVE FIXES */
 @media (max-width: 768px) {
   .section-grid,
@@ -2299,6 +2380,27 @@ select.search-input option {
   background: rgba(255, 255, 255, 0.1);
 }
 
+.confirm-btn.yes-btn.single {
+  width: 100%;
+  min-width: 200px;
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 10px 28px;
+  border-radius: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  outline: none;
+}
+
+.confirm-btn.yes-btn.single:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background-color: rgba(212, 175, 55, 0.05);
+  box-shadow: none;
+}
+
 .confirm-btn.no-btn:focus,
 .confirm-btn.yes-btn:focus,
 .confirm-btn.no-btn:focus-visible,
@@ -2457,6 +2559,15 @@ select.search-input option {
 
 .custom-input {
   margin-bottom: 0;
+}
+
+.uppercase-form input.custom-input,
+.uppercase-form textarea.custom-input {
+  text-transform: uppercase;
+}
+
+.uppercase-form .suggestion-name {
+  text-transform: uppercase;
 }
 
 /* PHONE CUSTOM TOGGLE */

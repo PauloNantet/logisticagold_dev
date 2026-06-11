@@ -2,12 +2,13 @@ import { useLayoutEffect, useRef, useState } from "react";
 
 const formatDateBR = (val) => {
   if (!val) return "";
+  if (val.includes("/")) return val;
   const parts = val.split("-");
   if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
   return val;
 };
 
-export default function MapaServicoPreview({ entries, empresa, isLocked, onBack, onDownload, onBackToHistory, isOS }) {
+export default function MapaServicoPreview({ entries, empresa, showFinanceiro, isLocked, onBack, onDownload, onBackToHistory, isOS }) {
   const fornecedor = entries[0]?.fornecedor || "";
   const wrapperRef = useRef(null);
   const mapaRef = useRef(null);
@@ -39,16 +40,11 @@ export default function MapaServicoPreview({ entries, empresa, isLocked, onBack,
     <div className="preview-container">
       <div className="preview-actions no-print">
         <button onClick={onBack} className="back-btn">
-          {isLocked ? (isOS ? "✳️ Nova Ordem" : "✳️ Novo Mapa") : "← Voltar e Editar"}
+          ← Voltar e Editar
         </button>
         <button onClick={handleDownload} className="download-btn">
           ⬇ Baixar {isOS ? "Ordem" : "Mapa"} em PDF
         </button>
-        {isLocked && (
-          <button onClick={onBackToHistory} className="history-back-btn">
-            📋 Voltar ao Histórico
-          </button>
-        )}
       </div>
 
       {isLocked && (
@@ -61,7 +57,7 @@ export default function MapaServicoPreview({ entries, empresa, isLocked, onBack,
         <div
           id="mapa-servico"
           ref={mapaRef}
-          className={`os-paper landscape ${isLocked ? 'is-locked' : ''}`}
+          className={`os-paper landscape ${isLocked ? 'is-locked' : ''} ${showFinanceiro ? 'with-financeiro' : ''}`}
           style={{ transform: `scale(${scale})`, transformOrigin: "top center" }}
         >
           {/* HEADER */}
@@ -70,11 +66,9 @@ export default function MapaServicoPreview({ entries, empresa, isLocked, onBack,
               {empresa.logo && (
                 <img src={empresa.logo} className="os-logo" alt="Logo" />
               )}
-              <span className="os-company">{empresa.nome || "SUA EMPRESA"}{isOS ? ` - Ordem de Serviço - ${fornecedor}` : ""}</span>
+              <span className="os-company">{empresa.nome || "SUA EMPRESA"}{isOS ? ` - Ordem de Serviço - ${fornecedor}` : " - MAPA DE SERVIÇO"}</span>
             </div>
           </div>
-
-          {!isOS && <h1 className="os-title">MAPA DE SERVIÇO</h1>}
 
           {/* ENTRIES TABLE */}
           <table className="os-table">
@@ -94,6 +88,13 @@ export default function MapaServicoPreview({ entries, empresa, isLocked, onBack,
                 <th>VEÍCULO</th>
                 <th>PLACA</th>
                 <th>MOTORISTA/CONTATO</th>
+                {showFinanceiro && (
+                  <>
+                    <th>A PAGAR</th>
+                    <th>A RECEBER</th>
+                    <th>LUCRO</th>
+                  </>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -123,6 +124,23 @@ export default function MapaServicoPreview({ entries, empresa, isLocked, onBack,
                       <span key={i}>{i > 0 && <br />}{line}</span>
                     ))}</> : ""}
                   </td>
+                  {showFinanceiro && (
+                    <>
+                      <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                        {e.valor_pagar && e.valor_pagar !== "0" && e.valor_pagar !== ""
+                          ? `R$ ${Number(String(e.valor_pagar).replace(/\./g, "").replace(",", ".")).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+                          : "---"}
+                      </td>
+                      <td style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                        {e.valor_receber && e.valor_receber !== "0" && e.valor_receber !== ""
+                          ? `R$ ${Number(String(e.valor_receber).replace(/\./g, "").replace(",", ".")).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+                          : "---"}
+                      </td>
+                      <td style={{ textAlign: "right", whiteSpace: "nowrap", color: e.lucro < 0 ? "#d32f2f" : "#2e7d32" }}>
+                        {e.lucro ? `R$ ${Number(e.lucro).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "---"}
+                      </td>
+                    </>
+                  )}
                 </tr>
               ))}
             </tbody>
