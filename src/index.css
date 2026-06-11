@@ -604,7 +604,7 @@ td {
 .os-paper .os-table tbody td,
 .invoice-table tbody td {
   padding: 5px 4px !important;
-  border: 1px solid #ccc !important;
+  border: 1px solid #ccc;
   font-size: 10px;
   color: #000 !important;
   vertical-align: top;
@@ -1421,6 +1421,7 @@ td {
 
 .invoice-table {
   width: 100%;
+  border-collapse: collapse;
 }
 
 .invoice-table thead {
