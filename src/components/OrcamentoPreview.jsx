@@ -90,14 +90,6 @@ export default function OrcamentoPreview({ data, total, descontoCalculado, impos
           ⬇ Baixar Orçamento em PDF
         </button>
 
-        {isLocked && (
-          <button 
-            onClick={onBackToHistory}
-            className="history-back-btn"
-          >
-            📋 Voltar ao Histórico
-          </button>
-        )}
       </div>
 
       {isLocked && (
