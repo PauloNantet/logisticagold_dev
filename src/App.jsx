@@ -183,8 +183,7 @@ function AuthenticatedApp({ onLogout }) {
         setOsHistory(os);
         setMapaHistory(mapas);
         setOrcamentoHistory(orcs);
-        const loadedTema = settings.tema || "white";
-        localStorage.setItem("fatura_theme", loadedTema);
+        const loadedTema = localStorage.getItem("fatura_theme") || settings.tema || "white";
         setSavedSettings(settings);
         setData(prev => ({
           ...prev,
