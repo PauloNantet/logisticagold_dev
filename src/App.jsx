@@ -1206,13 +1206,26 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("fatura_theme");
-    if (savedTheme) document.body.dataset.theme = savedTheme;
-    if (isLoggedIn()) {
-      fetchMe().then(() => setLoading(false)).catch(() => setLoading(false));
-    } else {
+    async function init() {
+      const savedTheme = localStorage.getItem("fatura_theme");
+      if (savedTheme) {
+        document.body.dataset.theme = savedTheme;
+      } else {
+        try {
+          const res = await fetch("/api/settings/theme");
+          const data = await res.json();
+          if (data.tema) {
+            localStorage.setItem("fatura_theme", data.tema);
+            document.body.dataset.theme = data.tema;
+          }
+        } catch {}
+      }
+      if (isLoggedIn()) {
+        await fetchMe();
+      }
       setLoading(false);
     }
+    init();
   }, []);
 
   if (loading) return null;

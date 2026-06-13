@@ -31,6 +31,14 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
+app.get("/api/settings/theme", async (req, res) => {
+  try {
+    const { default: pool } = await import("./db.js");
+    const { rows } = await pool.query("SELECT tema FROM settings LIMIT 1");
+    res.json({ tema: rows[0]?.tema || "white" });
+  } catch { res.json({ tema: "white" }); }
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/clients", clientsRoutes);
 app.use("/api/services", servicesRoutes);
