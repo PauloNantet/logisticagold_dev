@@ -1,0 +1,74 @@
+/* THEME: DEFAULT (WHITE) - LIGHT UI + PAPER */
+body[data-theme="white"] {
+  --bg-main: #f0f2f5;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f8f9fa;
+  --bg-input: #ffffff;
+  --bg-hover: #e9ecef;
+  --primary: #1a1a1a;
+  --primary-hover: #333333;
+  --primary-dark: #000000;
+  --primary-glow: rgba(0, 0, 0, 0.06);
+  --primary-glow-strong: rgba(0, 0, 0, 0.12);
+  --text-main: #1a1a1a;
+  --text-secondary: #555555;
+  --text-placeholder: #999999;
+  --border-color: #e0e0e0;
+  --border-active: rgba(0, 0, 0, 0.2);
+  --input-border: #cccccc;
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.1);
+  --shadow-glow: 0 0 30px rgba(0, 0, 0, 0.05);
+  color-scheme: light;
+}
+
+body[data-theme="white"] body {
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(0, 0, 0, 0.02) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(0, 0, 0, 0.01) 0%, transparent 50%);
+}
+
+/* Invoice paper */
+.invoice-paper {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+}
+.invoice-logo { background-color: #ffffff; border: 2px solid #cccccc; padding: 4px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 5px; }
+.company-name { color: #111111 !important; }
+.document-title { color: #111111 !important; }
+.company-contact { color: #666666; }
+.info-label { color: #999999; }
+.info-value { font-family: monospace; font-weight: 600; }
+.due-date { color: #d32f2f; font-weight: 700; }
+.client-box, .responsible-box { background-color: #f0f7ff; border: 1px solid #e0efff; }
+.box-title, .client-name, .responsible-name, .client-data p, .responsible-data p, .client-data, .responsible-data { color: #111111 !important; }
+.box-title { color: #111111 !important; font-weight: 800 !important; }
+.client-name, .responsible-name { color: #777777 !important; }
+.invoice-table thead { background-color: #111111 !important; }
+.invoice-table th { color: #ffffff !important; border-bottom: 1px solid #333333 !important; }
+.invoice-table td { border-bottom: 1px solid #eeeeee !important; color: #111111 !important; }
+.item-name { color: #111111 !important; }
+.item-desc { color: #666666 !important; font-style: italic !important; }
+.obs-content { color: #666666; background-color: #f9f9f9; border-left: 4px solid #dddddd; }
+.pix-box { background-color: #f0f7ff; border: 1px solid #e0efff; }
+.pix-qr { background-color: #ffffff; }
+.pix-placeholder { background-color: #eeeeee; }
+.pix-title { color: #2563eb !important; }
+.pix-key { font-size: 13px; font-weight: 700; word-break: break-all; }
+.pix-owner { color: #777777; }
+.summary-rows { border-top: 2px solid #eeeeee; }
+.summary-row { color: #333333 !important; }
+.row-label { color: #777777 !important; }
+.total-main-row { border-top: 2px solid #111111; }
+.total-main-row .total-label { color: #111111 !important; }
+.total-main-row .total-value { font-size: 24px !important; color: #111111 !important; }
+.invoice-footer { border-top: 1px solid #eeeeee; }
+.thanks { color: #cccccc; }
+
+body[data-theme="white"] .action-button:hover { background-color: #ffffff; color: #000000; border-color: #1a1a1a; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+body[data-theme="white"] .services-toggle:hover { background-color: #ffffff; border-color: #1a1a1a; }
+body[data-theme="white"] .history-toggle { border-color: #1a1a1a !important; }
+body[data-theme="white"] .history-toggle:hover { background-color: #ffffff !important; color: #000000 !important; border-color: #1a1a1a !important; }

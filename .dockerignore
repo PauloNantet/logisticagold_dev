@@ -1,0 +1,10 @@
+node_modules
+dist
+.vite
+.vercel
+.git
+.gitignore
+*.md
+.vscode
+.env
+.env.*
