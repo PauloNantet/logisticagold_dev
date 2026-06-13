@@ -183,18 +183,20 @@ function AuthenticatedApp({ onLogout }) {
         setOsHistory(os);
         setMapaHistory(mapas);
         setOrcamentoHistory(orcs);
+        const loadedTema = settings.tema || "white";
+        localStorage.setItem("fatura_theme", loadedTema);
         setSavedSettings(settings);
         setData(prev => ({
           ...prev,
           empresa: settings.empresa || {},
           pagamento: settings.pagamento || {},
-          tema: settings.tema || "white"
+          tema: loadedTema
         }));
         setOrcamentoData(prev => ({
           ...prev,
           empresa: settings.empresa || {},
           pagamento: settings.pagamento || {},
-          tema: settings.tema || "white"
+          tema: loadedTema
         }));
       } catch (err) {
         console.error("Erro ao carregar dados:", err);
@@ -292,17 +294,19 @@ function AuthenticatedApp({ onLogout }) {
     try {
       await api.put("/api/settings", newSettings);
       setSavedSettings(newSettings);
+      const tema = newSettings.tema || "white";
+      localStorage.setItem("fatura_theme", tema);
       setData(prev => ({
         ...prev,
         empresa: newSettings.empresa || {},
         pagamento: newSettings.pagamento || {},
-        tema: newSettings.tema || "white"
+        tema
       }));
       setOrcamentoData(prev => ({
         ...prev,
         empresa: newSettings.empresa || {},
         pagamento: newSettings.pagamento || {},
-        tema: newSettings.tema || "white"
+        tema
       }));
       setShowSettings(false);
     } catch (err) {
@@ -1202,6 +1206,8 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const savedTheme = localStorage.getItem("fatura_theme");
+    if (savedTheme) document.body.dataset.theme = savedTheme;
     if (isLoggedIn()) {
       fetchMe().then(() => setLoading(false)).catch(() => setLoading(false));
     } else {
