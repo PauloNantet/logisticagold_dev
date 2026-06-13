@@ -382,12 +382,13 @@ textarea:focus {
 }
 
 textarea {
-  resize: vertical;
+  resize: none;
   height: 38px;
   min-height: 38px;
-  max-height: 44px;
+  max-height: none;
   white-space: pre-wrap;
   word-wrap: break-word;
+  overflow-y: hidden;
 }
 
 .mapa-servico-textarea {
@@ -2531,7 +2532,7 @@ select.search-input option {
 
 .box-title {
   font-weight: 700;
-
+  margin-top: 25px;
   margin-bottom: 10px;
   color: #111;
 }
@@ -2556,15 +2557,18 @@ select.search-input option {
   color: #fff !important;
   font-size: 12px !important;
   font-weight: 800 !important;
-  padding: 10px 8px !important;
+  padding: 6px !important;
   border: 1px solid #ddd !important;
 }
 
 .invoice-table td {
-  padding: 8px !important;
+  padding: 5px !important;
   font-size: 12px !important;
   border: 1px solid #ddd !important;
 }
+
+.text-center { text-align: center !important; }
+.text-right { text-align: right !important; }
 
 .item-name {
   font-weight: 700;
@@ -2713,7 +2717,6 @@ select.search-input option {
   display: flex;
   gap: 20px;
   align-items: flex-start;
-  margin-top: 25px;
 }
 
 .summary-pix-grid .pix-section {

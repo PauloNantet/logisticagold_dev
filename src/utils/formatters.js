@@ -78,6 +78,15 @@ export const autoResize = (el) => {
   el.style.height = Math.max(38, el.scrollHeight) + "px";
 };
 
+export const formatDateMask = (val) => {
+  const digits = val.replace(/\D/g, "").slice(0, 8);
+  if (!digits) return "";
+  let formatted = digits.slice(0, 2);
+  if (digits.length > 2) formatted += "/" + digits.slice(2, 4);
+  if (digits.length > 4) formatted += "/" + digits.slice(4);
+  return formatted;
+};
+
 export const formatCurrency = (val) => {
   let digits = val.replace(/\D/g, "");
   if (!digits) return "";

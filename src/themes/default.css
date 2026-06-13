@@ -48,8 +48,8 @@ body[data-theme="white"] body {
 .box-title { color: #111111 !important; font-weight: 800 !important; }
 .client-name, .responsible-name { color: #777777 !important; }
 .invoice-table thead { background-color: #111111 !important; }
-.invoice-table th { color: #ffffff !important; border-bottom: 1px solid #333333 !important; }
-.invoice-table td { border-bottom: 1px solid #eeeeee !important; color: #111111 !important; }
+.invoice-table th { color: #ffffff !important; border: 1px solid #333333 !important; }
+.invoice-table td { border: 1px solid #eeeeee !important; color: #111111 !important; }
 .item-name { color: #111111 !important; }
 .item-desc { color: #666666 !important; font-style: italic !important; }
 .obs-content { color: #666666; background-color: #f9f9f9; border-left: 4px solid #dddddd; }

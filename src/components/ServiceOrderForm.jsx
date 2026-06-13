@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { api } from "../utils/api";
 import { downloadInvoicePDF } from "../utils/invoice";
-import { formatDateBR, handlePhoneKeyDown, handlePhoneInput, autoResize } from "../utils/formatters";
+import { formatDateBR, formatDateMask, handlePhoneKeyDown, handlePhoneInput, autoResize } from "../utils/formatters";
 import ConfirmDialog from "./ConfirmDialog";
 
 const EMPTY_ENTRY = {
@@ -793,7 +793,7 @@ const SimularModal = ({ clients, vehicles, drivers = [], simulations, setSimulat
               </div>
               <div className="input-group">
                 <label className="input-label">Data</label>
-                <input type="date" value={entry.data} onChange={(e) => updateEntry("data", e.target.value)} className="custom-input" />
+                <input type="text" value={entry.data} onChange={(e) => updateEntry("data", formatDateMask(e.target.value))} placeholder="DD/MM/AAAA" maxLength={10} className="custom-input" />
               </div>
               <div className="input-group">
                 <label className="input-label">Hora</label>

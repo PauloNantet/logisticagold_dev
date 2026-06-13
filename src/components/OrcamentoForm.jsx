@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useLayoutEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { autoResize } from "../utils/formatters";
+import { autoResize, formatDateMask } from "../utils/formatters";
 import { Section, InputField } from "../utils/components";
 
 export default function OrcamentoForm({ data, clients, total, descontoCalculado, impostoCalculado, finalTotal, update, updateItem, addItem, removeItem, onSubmit, fieldErrors = {}, clearFieldError, scrollToError }) {
@@ -264,14 +264,15 @@ export default function OrcamentoForm({ data, clients, total, descontoCalculado,
               <label className="input-label">Data de Emissão</label>
               <input 
                 ref={dataEmissaoRef}
-                type="date"
+                type="text"
                 value={data.orcamento.data} 
                 onChange={(e) => {
-                  update("orcamento", "data", e.target.value);
+                  update("orcamento", "data", formatDateMask(e.target.value));
                   if (fieldErrors.dataEmissao) clearFieldError("dataEmissao");
                 }}
                 className={`custom-input${fieldErrors.dataEmissao ? ' input-error' : ''}`}
-                placeholder="Data de emissão" 
+                placeholder="DD/MM/AAAA"
+                maxLength={10}
               />
             </div>
             <InputField 

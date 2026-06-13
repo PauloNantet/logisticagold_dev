@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { Trash2, Plus } from "lucide-react";
-import { autoResize } from "../utils/formatters";
+import { autoResize, formatDateMask } from "../utils/formatters";
 import { Section, InputField } from "../utils/components";
 
 export default function InvoiceForm({ data, clients, services, total, descontoCalculado, impostoCalculado, finalTotal, update, updateItem, addItem, removeItem, onSubmit, onLogoChange, fieldErrors = {}, clearFieldError, scrollToError }) {
@@ -390,20 +390,32 @@ export default function InvoiceForm({ data, clients, services, total, descontoCa
               <label className="input-label">Data de Emissão</label>
               <input 
                 ref={dataEmissaoRef}
-                type="date"
+                type="text"
                 value={data.fatura.data} 
                 onChange={(e) => {
-                  update("fatura", "data", e.target.value);
+                  update("fatura", "data", formatDateMask(e.target.value));
                   if (fieldErrors.dataEmissao) clearFieldError("dataEmissao");
                 }}
                 className={`custom-input${fieldErrors.dataEmissao ? ' input-error' : ''}`}
-                placeholder="Data de emissão" 
+                placeholder="DD/MM/AAAA"
+                maxLength={10}
               />
             </div>
-            <InputField label="Data de Vencimento" type="date" value={data.fatura.vencimento} onChange={(e) => {
-              update("fatura", "vencimento", e.target.value);
-              if (fieldErrors.dataVencimento) clearFieldError("dataVencimento");
-            }} placeholder="Data de vencimento" error={fieldErrors.dataVencimento} inputRef={dataVencimentoRef} />
+            <div className={`input-group${fieldErrors.dataVencimento ? ' input-error' : ''}`}>
+              <label className="input-label">Data de Vencimento</label>
+              <input 
+                ref={dataVencimentoRef}
+                type="text"
+                value={data.fatura.vencimento} 
+                onChange={(e) => {
+                  update("fatura", "vencimento", formatDateMask(e.target.value));
+                  if (fieldErrors.dataVencimento) clearFieldError("dataVencimento");
+                }}
+                className={`custom-input${fieldErrors.dataVencimento ? ' input-error' : ''}`}
+                placeholder="DD/MM/AAAA"
+                maxLength={10}
+              />
+            </div>
           </div>
         </Section>
 
