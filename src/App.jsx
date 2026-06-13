@@ -291,24 +291,14 @@ function AuthenticatedApp({ onLogout }) {
   };
 
   const handleSaveSettings = async (newSettings) => {
+    const tema = newSettings.tema || "white";
+    localStorage.setItem("fatura_theme", tema);
+    setData(prev => ({ ...prev, empresa: newSettings.empresa || {}, pagamento: newSettings.pagamento || {}, tema }));
+    setOrcamentoData(prev => ({ ...prev, empresa: newSettings.empresa || {}, pagamento: newSettings.pagamento || {}, tema }));
+    setShowSettings(false);
     try {
       await api.put("/api/settings", newSettings);
       setSavedSettings(newSettings);
-      const tema = newSettings.tema || "white";
-      localStorage.setItem("fatura_theme", tema);
-      setData(prev => ({
-        ...prev,
-        empresa: newSettings.empresa || {},
-        pagamento: newSettings.pagamento || {},
-        tema
-      }));
-      setOrcamentoData(prev => ({
-        ...prev,
-        empresa: newSettings.empresa || {},
-        pagamento: newSettings.pagamento || {},
-        tema
-      }));
-      setShowSettings(false);
     } catch (err) {
       console.error("Erro ao salvar configurações:", err);
     }
