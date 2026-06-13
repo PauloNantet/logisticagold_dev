@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getAllUsers, registerUser, deleteUser, isAdmin, resetUserPassword } from "../utils/auth";
+import { api } from "../utils/api";
 import ConfirmDialog from "./ConfirmDialog";
 
 export default function AdminPanel({ onClose }) {
@@ -11,6 +12,9 @@ export default function AdminPanel({ onClose }) {
   const [resetUser, setResetUser] = useState(null);
   const [resetPassword, setResetPassword] = useState("");
   const [confirmDeleteUser, setConfirmDeleteUser] = useState(null);
+  const [backupLoading, setBackupLoading] = useState(false);
+  const [restoreLoading, setRestoreLoading] = useState(false);
+  const restoreFileRef = useRef(null);
 
   const loadUsers = async () => {
     if (isAdmin()) {
@@ -76,6 +80,45 @@ export default function AdminPanel({ onClose }) {
   const cancelReset = () => {
     setResetUser(null);
     setResetPassword("");
+  };
+
+  const handleBackup = async () => {
+    setBackupLoading(true);
+    try {
+      const token = localStorage.getItem("fatura_token");
+      const res = await fetch("/api/admin/backup", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error("Erro ao gerar backup.");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `backup_${new Date().toISOString().slice(0, 10).replace(/-/g, "")}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(err.message);
+    }
+    setBackupLoading(false);
+  };
+
+  const handleRestore = async (file) => {
+    if (!file) return;
+    setRestoreLoading(true);
+    setError("");
+    setSuccess("");
+    try {
+      const text = await file.text();
+      const backup = JSON.parse(text);
+      if (!backup.tables) throw new Error("Arquivo de backup inválido.");
+      const result = await api.post("/api/admin/restore", backup);
+      setSuccess(result.message || "Restore concluído com sucesso.");
+      loadUsers();
+    } catch (err) {
+      setError(err.message);
+    }
+    setRestoreLoading(false);
   };
 
   return (
@@ -160,6 +203,46 @@ export default function AdminPanel({ onClose }) {
               <button type="submit" className="login-submit-btn">Criar Usuário</button>
             </form>
           </div>
+
+          {isAdmin() && (
+            <div className="admin-section">
+              <h3>Backup / Restore do Banco de Dados</h3>
+              <p style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 12 }}>
+                Exporta ou importa todos os dados do sistema em formato JSON.
+              </p>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <button
+                  type="button"
+                  className="save-settings-btn"
+                  style={{ flex: "none", padding: "10px 20px" }}
+                  onClick={handleBackup}
+                  disabled={backupLoading}
+                >
+                  {backupLoading ? "Gerando..." : "Baixar Backup"}
+                </button>
+                <button
+                  type="button"
+                  className="cancel-settings-btn"
+                  style={{ flex: "none", padding: "10px 20px" }}
+                  onClick={() => restoreFileRef.current?.click()}
+                  disabled={restoreLoading}
+                >
+                  {restoreLoading ? "Restaurando..." : "Restaurar Backup"}
+                </button>
+                <input
+                  ref={restoreFileRef}
+                  type="file"
+                  accept=".json"
+                  style={{ display: "none" }}
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) handleRestore(file);
+                    e.target.value = "";
+                  }}
+                />
+              </div>
+            </div>
+          )}
 
         </div>
       </div>

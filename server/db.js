@@ -170,5 +170,5 @@ async function initDB() {
   }
 }
 
-export { pool, initDB };
+export { initDB };
 export default pool;

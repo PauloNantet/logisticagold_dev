@@ -1,29 +1,7 @@
 import { useEffect, useRef, useState, useLayoutEffect } from "react";
-
-const Section = ({ title, children }) => (
-  <section className="section-card">
-    <h3 className="section-title">{title}</h3>
-    <div className="section-grid">
-      {children}
-    </div>
-  </section>
-);
-
-const InputField = ({ label, value, onChange, type = "text", placeholder = "", readOnly = false, error = false, inputRef, onBlur }) => (
-  <div className={`input-group${error ? ' input-error' : ''}`}>
-    <label className="input-label">{label}</label>
-    <input 
-      ref={inputRef}
-      type={type}
-      value={value} 
-      onChange={onChange}
-      onBlur={onBlur}
-      placeholder={placeholder}
-      readOnly={readOnly}
-      className={`custom-input${error ? ' input-error' : ''}${readOnly ? ' bg-gray-100 cursor-not-allowed opacity-75' : ''}`}
-    />
-  </div>
-);
+import { Plus, Trash2 } from "lucide-react";
+import { autoResize } from "../utils/formatters";
+import { Section, InputField } from "../utils/components";
 
 export default function OrcamentoForm({ data, clients, total, descontoCalculado, impostoCalculado, finalTotal, update, updateItem, addItem, removeItem, onSubmit, fieldErrors = {}, clearFieldError, scrollToError }) {
   const lastItemRef = useRef(null);
@@ -40,12 +18,6 @@ export default function OrcamentoForm({ data, clients, total, descontoCalculado,
   const orcamentoNumeroRef = useRef(null);
   const validadeRef = useRef(null);
   const observacoesRef = useRef(null);
-
-  const autoResize = (el) => {
-    if (!el) return;
-    el.style.height = "40px";
-    el.style.height = el.scrollHeight + "px";
-  };
 
   useEffect(() => {
     if (!scrollToError) return;
@@ -253,12 +225,15 @@ export default function OrcamentoForm({ data, clients, total, descontoCalculado,
       <form onSubmit={onSubmit} onKeyDown={handleFormKeyDown}>
         <Section title="Sua Empresa">
           <div className="company-logo-section">
-            <div className="logo-upload-box no-hover">
-              {data.empresa.logo ? (
-                <img src={data.empresa.logo} alt="Logo preview" className="logo-preview" />
-              ) : (
-                <div className="no-logo">Sem Logo</div>
-              )}
+            <div className="logo-column">
+              <label className="input-label">LOGOTIPO</label>
+              <div className="logo-upload-box no-hover">
+                {data.empresa.logo ? (
+                  <img src={data.empresa.logo} alt="Logo preview" className="logo-preview" />
+                ) : (
+                  <div className="no-logo">Sem Logo</div>
+                )}
+              </div>
             </div>
             <div className="company-info-grid">
               <InputField label="Nome da Empresa" value={data.empresa.nome} readOnly={true} placeholder="Nome da empresa" />
@@ -448,7 +423,7 @@ export default function OrcamentoForm({ data, clients, total, descontoCalculado,
                         className="delete-item-inline-btn"
                         title="Remover Item"
                       >
-                        🗑️
+                        <Trash2 size={16} />
                       </button>
                     </td>
                   </tr>
@@ -466,7 +441,7 @@ export default function OrcamentoForm({ data, clients, total, descontoCalculado,
             onClick={addItem}
             className="add-item-btn"
           >
-            <span>+</span> Adicionar Novo Item
+            <Plus size={16} /> Adicionar Novo Item
           </button>
         </section>
 

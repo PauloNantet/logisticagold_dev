@@ -15,8 +15,8 @@ import vehiclesRoutes from "./routes/vehicles.js";
 import mapasRoutes from "./routes/mapas.js";
 import agendaRoutes from "./routes/agenda.js";
 import driversRoutes from "./routes/drivers.js";
-import adminRoutes from "./routes/admin.js";
 import orcamentosRoutes from "./routes/orcamentos.js";
+import adminRoutes from "./routes/admin.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,40 +42,43 @@ app.use("/api/vehicles", vehiclesRoutes);
 app.use("/api/mapas", mapasRoutes);
 app.use("/api/agenda", agendaRoutes);
 app.use("/api/drivers", driversRoutes);
-app.use("/api/admin", adminRoutes);
 app.use("/api/orcamentos", orcamentosRoutes);
+app.use("/api/admin", adminRoutes);
 
 const distPath = path.join(__dirname, "..", "dist");
 const indexHtml = path.join(distPath, "index.html");
 
 app.use(express.static(distPath));
-app.use((req, res) => {
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api/")) {
+    return res.status(404).json({ error: "Rota não encontrada" });
+  }
   res.sendFile(indexHtml);
 });
 
-let dbReady = false;
-
-const server = app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
-});
-
-initDB().then(async () => {
-  await ensureAdmin();
-  dbReady = true;
-  console.log("Banco de dados conectado e pronto.");
-}).catch(err => {
-  console.error("Erro ao inicializar banco de dados:", err);
-  dbReady = false;
-});
+let server;
 
 function shutdown(signal) {
   console.log(`\n${signal} recebido. Encerrando servidor...`);
-  server.close(() => {
-    console.log("Servidor encerrado.");
-    process.exit(0);
-  });
+  if (server) {
+    server.close(() => {
+      console.log("Servidor encerrado.");
+      process.exit(0);
+    });
+  }
   setTimeout(() => process.exit(1), 5000);
 }
+
+initDB().then(async () => {
+  await ensureAdmin();
+  console.log("Banco de dados conectado e pronto.");
+  server = app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Servidor rodando em http://localhost:${PORT}`);
+  });
+}).catch(err => {
+  console.error("Erro ao inicializar banco de dados:", err);
+  process.exit(1);
+});
 
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 process.on("SIGINT", () => shutdown("SIGINT"));

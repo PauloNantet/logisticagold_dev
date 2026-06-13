@@ -1,87 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { api } from "../utils/api";
 import { downloadInvoicePDF } from "../utils/invoice";
+import { formatDateBR, handlePhoneKeyDown, handlePhoneInput, autoResize } from "../utils/formatters";
 import ConfirmDialog from "./ConfirmDialog";
-
-const formatDateBR = (val) => {
-  if (!val) return "";
-  if (val.includes("/")) return val;
-  const parts = val.split("-");
-  if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-  return val;
-};
-
-const formatPhone = (val) => {
-  const digits = val.replace(/\D/g, "").slice(0, 22);
-  if (!digits) return "";
-  const parts = [];
-  let i = 0;
-  while (i < digits.length) {
-    const remaining = digits.length - i;
-    const take = remaining >= 11 ? 11 : remaining >= 10 ? 10 : remaining;
-    const chunk = digits.slice(i, i + take);
-    if (chunk.length >= 7) {
-      parts.push(`${chunk.slice(0, 2)} ${chunk.slice(2, 7)}-${chunk.slice(7)}`);
-    } else if (chunk.length > 2) {
-      parts.push(`${chunk.slice(0, 2)} ${chunk.slice(2)}`);
-    } else if (chunk.length === 2) {
-      parts.push(`${chunk} `);
-    } else {
-      parts.push(chunk);
-    }
-    i += take;
-  }
-  return parts.join(" / ");
-};
-
-const handlePhoneKeyDown = (e, updater) => {
-  if (e.key !== "Backspace" && e.key !== "Delete") return;
-  const input = e.target;
-  const pos = input.selectionStart;
-  const val = input.value;
-
-  if (e.key === "Backspace" && pos > 0 && !/\d/.test(val[pos - 1])) {
-    e.preventDefault();
-    let removeStart = pos - 1;
-    while (removeStart > 0 && !/\d/.test(val[removeStart - 1])) removeStart--;
-    if (removeStart > 0) removeStart--;
-    const newVal = val.slice(0, removeStart) + val.slice(pos);
-    const formatted = formatPhone(newVal);
-    const newPos = Math.min(removeStart, formatted.length);
-    updater(formatted);
-    requestAnimationFrame(() => { input.selectionStart = newPos; input.selectionEnd = newPos; });
-  } else if (e.key === "Delete" && pos < val.length && !/\d/.test(val[pos])) {
-    e.preventDefault();
-    let removeEnd = pos + 1;
-    while (removeEnd < val.length && !/\d/.test(val[removeEnd])) removeEnd++;
-    if (removeEnd < val.length) removeEnd++;
-    const newVal = val.slice(0, pos) + val.slice(removeEnd);
-    const formatted = formatPhone(newVal);
-    const newPos = Math.min(pos, formatted.length);
-    updater(formatted);
-    requestAnimationFrame(() => { input.selectionStart = newPos; input.selectionEnd = newPos; });
-  }
-};
-
-const handlePhoneInput = (e, updater) => {
-  const input = e.target;
-  const formatted = formatPhone(input.value);
-  const pos = input.selectionStart;
-  const oldLen = input.value.length;
-  const newLen = formatted.length;
-  let newPos = pos;
-  if (newLen > oldLen) newPos = pos + (newLen - oldLen);
-  else if (newLen < oldLen) newPos = Math.max(0, pos - (oldLen - newLen));
-  newPos = Math.min(newPos, formatted.length);
-  updater(formatted);
-  requestAnimationFrame(() => { input.selectionStart = newPos; input.selectionEnd = newPos; });
-};
-
-const autoResize = (el) => {
-  if (!el) return;
-  el.style.height = "40px";
-  el.style.height = el.scrollHeight + "px";
-};
 
 const EMPTY_ENTRY = {
   fornecedor: "",
@@ -111,6 +32,8 @@ const ManualOSModal = ({ clients, vehicles, drivers = [], onSubmit, onClose, ini
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const [confirmDeleteIdx, setConfirmDeleteIdx] = useState(null);
   const [alertMessage, setAlertMessage] = useState("");
+
+  const manualTableRef = useRef(null);
 
   const servicoRef = useRef(null);
   const observacaoRef = useRef(null);
@@ -156,6 +79,43 @@ const ManualOSModal = ({ clients, vehicles, drivers = [], onSubmit, onClose, ini
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const el = manualTableRef.current;
+    if (!el) return;
+    let isDown = false, startX, scrollLeft;
+
+    const onMouseDown = (e) => {
+      if (e.target.closest("button")) return;
+      isDown = true;
+      startX = e.pageX - el.offsetLeft;
+      scrollLeft = el.scrollLeft;
+      el.classList.add("is-dragging");
+    };
+
+    const onMouseMove = (e) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - el.offsetLeft;
+      const walk = (startX - x) * 1.5;
+      el.scrollLeft = scrollLeft + walk;
+    };
+
+    const onMouseUp = () => {
+      isDown = false;
+      el.classList.remove("is-dragging");
+    };
+
+    el.addEventListener("mousedown", onMouseDown);
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+
+    return () => {
+      el.removeEventListener("mousedown", onMouseDown);
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
   }, []);
 
   const updateEntry = (field, value) => setEntry(prev => ({ ...prev, [field]: value }));
@@ -407,7 +367,7 @@ const ManualOSModal = ({ clients, vehicles, drivers = [], onSubmit, onClose, ini
             <div className="form-row-single">
               <div className="input-group">
                 <label className="input-label">Serviço</label>
-                <textarea ref={servicoRef} value={entry.servico} onChange={(e) => updateEntry("servico", e.target.value)} onInput={() => autoResize(servicoRef.current)} placeholder="Tipo de serviço" className="custom-input" />
+                <textarea ref={servicoRef} value={entry.servico} onChange={(e) => updateEntry("servico", e.target.value)} onInput={() => autoResize(servicoRef.current)} placeholder="Tipo de serviço" className="custom-input mapa-servico-textarea" />
               </div>
             </div>
             <div className="form-row-3">
@@ -438,7 +398,7 @@ const ManualOSModal = ({ clients, vehicles, drivers = [], onSubmit, onClose, ini
             <div className="form-row-single">
               <div className="input-group">
                 <label className="input-label">Observação</label>
-                <textarea ref={observacaoRef} value={entry.observacao} onChange={(e) => updateEntry("observacao", e.target.value)} onInput={() => autoResize(observacaoRef.current)} placeholder="Observações" className="custom-input" />
+                <textarea ref={observacaoRef} value={entry.observacao} onChange={(e) => updateEntry("observacao", e.target.value)} onInput={() => autoResize(observacaoRef.current)} placeholder="Observações" className="custom-input mapa-servico-textarea" />
               </div>
             </div>
             <div className="form-row-3">
@@ -492,7 +452,7 @@ const ManualOSModal = ({ clients, vehicles, drivers = [], onSubmit, onClose, ini
             <div className="modal-header-row">
               <h3 className="section-title" style={{ margin: 0, border: "none" }}>Serviços ({entries.length})</h3>
             </div>
-            <div className="table-responsive spreadsheet-container">
+            <div className="table-responsive spreadsheet-container" ref={manualTableRef} style={{ cursor: "grab" }}>
               <table className="spreadsheet-table">
                 <thead>
                   <tr>
@@ -848,7 +808,7 @@ const SimularModal = ({ clients, vehicles, drivers = [], simulations, setSimulat
               <div className="form-row-single">
                 <div className="input-group">
                   <label className="input-label">Serviço</label>
-                  <textarea ref={servicoRef} value={entry.servico} onChange={(e) => updateEntry("servico", e.target.value)} onInput={() => autoResize(servicoRef.current)} placeholder="Tipo de serviço" className="custom-input" />
+                <textarea ref={servicoRef} value={entry.servico} onChange={(e) => updateEntry("servico", e.target.value)} onInput={() => autoResize(servicoRef.current)} placeholder="Tipo de serviço" className="custom-input mapa-servico-textarea" />
                 </div>
               </div>
               <div className="form-row-3">
@@ -879,7 +839,7 @@ const SimularModal = ({ clients, vehicles, drivers = [], simulations, setSimulat
               <div className="form-row-single">
                 <div className="input-group">
                   <label className="input-label">Observação</label>
-                  <textarea ref={observacaoRef} value={entry.observacao} onChange={(e) => updateEntry("observacao", e.target.value)} onInput={() => autoResize(observacaoRef.current)} placeholder="Observações" className="custom-input" />
+                <textarea ref={observacaoRef} value={entry.observacao} onChange={(e) => updateEntry("observacao", e.target.value)} onInput={() => autoResize(observacaoRef.current)} placeholder="Observações" className="custom-input mapa-servico-textarea" />
                 </div>
               </div>
               <div className="form-row-3">
@@ -947,7 +907,7 @@ const SimularModal = ({ clients, vehicles, drivers = [], simulations, setSimulat
               <div className="modal-header-row">
                 <h3 className="section-title" style={{ margin: 0, border: "none" }}>Simulações ({simulations.length})</h3>
               </div>
-              <div className="table-responsive spreadsheet-container">
+            <div className="table-responsive spreadsheet-container">
                 <table className="spreadsheet-table">
                   <thead>
                     <tr>
@@ -966,11 +926,7 @@ const SimularModal = ({ clients, vehicles, drivers = [], simulations, setSimulat
                       <th>Veículo</th>
                       <th>Placa</th>
                       <th>Motorista/Contato</th>
-                    <th style={{ textAlign: "center" }}>
-                      {selectMode ? (
-                        <input type="checkbox" checked={selectedIds.size === sortedEntries.length && sortedEntries.length > 0} onChange={toggleSelectAll} style={{ cursor: "pointer", width: 16, height: 16 }} />
-                      ) : "Ações"}
-                    </th>
+                    <th style={{ textAlign: "center" }}>Ações</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1039,6 +995,7 @@ export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers 
   const [dataFilter, setDataFilter] = useState([]);
   const [fileEventoFilter, setFileEventoFilter] = useState([]);
   const [motoristaFilter, setMotoristaFilter] = useState([]);
+  const [hasHorizontalScroll, setHasHorizontalScroll] = useState(false);
   const [showFornecedorPopup, setShowFornecedorPopup] = useState(false);
   const [showDatePopup, setShowDatePopup] = useState(false);
   const [showFileEventoPopup, setShowFileEventoPopup] = useState(false);
@@ -1049,8 +1006,7 @@ export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers 
   const [showManualOSModal, setShowManualOSModal] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
-  const [selectBtnHover, setSelectBtnHover] = useState(false);
-  const [todosBtnHover, setTodosBtnHover] = useState(false);
+  const tableRef = useRef(null);
   const [simulations, setSimulations] = useState(() => {
     try {
       const saved = localStorage.getItem("fatura_simulacoes");
@@ -1105,6 +1061,57 @@ export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers 
       setShowManualOSModal(true);
     }
   }, [restoredEntries]);
+
+  useEffect(() => {
+    const el = tableRef.current;
+    if (!el) return;
+    let isDown = false, startX, scrollLeft;
+
+    const onMouseDown = (e) => {
+      if (e.target.closest("button")) return;
+      isDown = true;
+      startX = e.pageX - el.offsetLeft;
+      scrollLeft = el.scrollLeft;
+      el.classList.add("is-dragging");
+    };
+
+    const onMouseMove = (e) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - el.offsetLeft;
+      const walk = (startX - x) * 1.5;
+      el.scrollLeft = scrollLeft + walk;
+    };
+
+    const onMouseUp = () => {
+      isDown = false;
+      el.classList.remove("is-dragging");
+    };
+
+    el.addEventListener("mousedown", onMouseDown);
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+
+    return () => {
+      el.removeEventListener("mousedown", onMouseDown);
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+  }, [loading]);
+
+  useEffect(() => {
+    const el = tableRef.current;
+    if (!el) return;
+    const check = () => setHasHorizontalScroll(el.scrollWidth > el.clientWidth + 1);
+    check();
+    const observer = new ResizeObserver(check);
+    observer.observe(el);
+    window.addEventListener("resize", check);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", check);
+    };
+  }, [loading, entries.length]);
 
   const allEntries = entries;
 
@@ -1219,17 +1226,17 @@ export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers 
               <span className="table-count-header">
                 {sortedEntries.length} serviço{sortedEntries.length !== 1 ? "s" : ""} pendente{sortedEntries.length !== 1 ? "s" : ""}
               </span>
-              <div style={{ display: "flex", gap: 8, marginLeft: "auto" }}>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", marginLeft: "auto" }}>
                 {selectMode && selectedIds.size > 0 && (
-                  <button type="button" onClick={handleBulkDownload} style={{ width: "auto", padding: "8px 20px", whiteSpace: "nowrap", background: "#22c55e", color: "#fff", borderRadius: 8, fontWeight: 800, textTransform: "uppercase", fontSize: 13, border: "none", cursor: "pointer" }}>
+                  <button type="button" onClick={handleBulkDownload} className={`action-tab-btn${selectedIds.size > 0 ? " active" : ""}`}>
                     ⬇ Baixar ({selectedIds.size})
                   </button>
                 )}
-                <button type="button" onClick={toggleSelectMode} onMouseEnter={() => setSelectBtnHover(true)} onMouseLeave={() => setSelectBtnHover(false)} style={{ width: "auto", padding: "8px 20px", whiteSpace: "nowrap", background: selectMode ? (selectBtnHover ? "var(--primary-hover)" : "var(--primary)") : (selectBtnHover ? "rgba(212,175,55,0.05)" : "var(--bg-input)"), color: selectMode ? "#000" : (selectBtnHover ? "var(--primary)" : "var(--text-main)"), border: selectBtnHover ? "1px solid var(--primary)" : "1px solid var(--border-color)", borderRadius: 8, fontWeight: 800, textTransform: "uppercase", fontSize: 13, cursor: "pointer", transition: "all 0.3s ease" }}>
+                <button type="button" onClick={toggleSelectMode} className={`action-tab-btn${selectMode ? " active" : ""}`}>
                   {selectMode ? "✕ Cancelar" : "☑ Selecionar p/ Baixar"}
                 </button>
                 {selectMode && (
-                  <button type="button" onClick={toggleSelectAll} onMouseEnter={() => setTodosBtnHover(true)} onMouseLeave={() => setTodosBtnHover(false)} style={{ width: "auto", padding: "8px 20px", whiteSpace: "nowrap", background: todosBtnHover ? "rgba(212,175,55,0.05)" : "var(--bg-input)", color: todosBtnHover ? "var(--primary)" : "var(--text-main)", border: todosBtnHover ? "1px solid var(--primary)" : "1px solid var(--border-color)", borderRadius: 8, fontWeight: 800, textTransform: "uppercase", fontSize: 13, cursor: "pointer", transition: "all 0.3s ease" }}>
+                  <button type="button" onClick={toggleSelectAll} className="action-tab-btn">
                     Todos
                   </button>
                 )}
@@ -1250,20 +1257,19 @@ export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers 
                 </button>
               </div>
             </div>
-              <div style={{ display: "flex", gap: 4, maxWidth: "100%" }}>
-                <div className={`search-container${fornecedorError ? ' input-error' : ''}`} style={{ flex: "0 0 220px" }}>
+              <div style={{ display: "flex", gap: 6, maxWidth: "100%", alignItems: "center" }}>
+                <div className="search-container" style={{ flex: "0 0 auto", width: "auto" }}>
                   <button
                     type="button"
                     onClick={() => setShowFornecedorPopup(true)}
-                    className="search-input"
-                    style={{ textAlign: "left", cursor: "pointer", height: 44, display: "flex", alignItems: "center", justifyContent: "space-between" }}
+                    className={`filter-btn${fornecedorError ? ' filter-error' : ''}`}
+                    style={{ width: "auto", gap: 8, padding: "0 14px", fontSize: "13px", fontWeight: "600" }}
                   >
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fornecedorFilter.length > 0 ? `${fornecedorFilter.length} fornecedor(es)` : "Fornecedor"}</span>
-                    <span style={{ fontSize: 10, color: "var(--text-placeholder)", flexShrink: 0 }}>▼</span>
+                    <span>{fornecedorFilter.length > 0 ? `${fornecedorFilter.length} fornecedor(es)` : "Fornecedor"}</span>
                   </button>
                   {showFornecedorPopup && (
                     <div onClick={() => setShowFornecedorPopup(false)} style={{ position: "fixed", inset: 0, zIndex: 2000 }}>
-                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: 5, left: "50%", transform: "translateX(-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
                         <h3 style={{ color: "var(--primary)", fontSize: 16, fontWeight: 700, marginBottom: 16, textTransform: "uppercase", letterSpacing: 1 }}>Filtrar por Fornecedor</h3>
                         <button type="button" onClick={() => { setFornecedorFilter([]); setFornecedorError(false); }} style={{ display: "block", width: "100%", padding: "10px 14px", textAlign: "left", background: fornecedorFilter.length === 0 ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: fornecedorFilter.length === 0 ? 700 : 400, marginBottom: 4 }}>
                           📋 Todos os fornecedores
@@ -1290,19 +1296,18 @@ export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers 
                     </div>
                   )}
                 </div>
-                <div className="search-container" style={{ flex: "0 0 150px" }}>
+                <div className="search-container" style={{ flex: "0 0 auto", width: "auto" }}>
                   <button
                     type="button"
                     onClick={() => setShowDatePopup(true)}
-                    className="search-input"
-                    style={{ textAlign: "left", cursor: "pointer", height: 44, display: "flex", alignItems: "center", justifyContent: "space-between" }}
+                    className="filter-btn"
+                    style={{ width: "auto", gap: 8, padding: "0 14px", color: "#FFF", fontSize: "13px", fontWeight: "600" }}
                   >
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{dataFilter.length > 0 ? `${dataFilter.length} data(s)` : "Data"}</span>
-                    <span style={{ fontSize: 10, color: "var(--text-placeholder)", flexShrink: 0 }}>▼</span>
+                    <span>{dataFilter.length > 0 ? `${dataFilter.length} data(s)` : "Data"}</span>
                   </button>
                   {showDatePopup && (
                     <div onClick={() => setShowDatePopup(false)} style={{ position: "fixed", inset: 0, zIndex: 2000 }}>
-                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: 5, left: "50%", transform: "translateX(-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
                         <h3 style={{ color: "var(--primary)", fontSize: 16, fontWeight: 700, marginBottom: 16, textTransform: "uppercase", letterSpacing: 1 }}>Filtrar por Data</h3>
                         <button type="button" onClick={() => { setDataFilter([]); }} style={{ display: "block", width: "100%", padding: "10px 14px", textAlign: "left", background: dataFilter.length === 0 ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: dataFilter.length === 0 ? 700 : 400, marginBottom: 4 }}>
                           📋 Todas as datas
@@ -1328,19 +1333,18 @@ export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers 
                     </div>
                   )}
                 </div>
-                <div className="search-container" style={{ flex: "0 0 150px" }}>
+                <div className="search-container" style={{ flex: "0 0 auto", width: "auto" }}>
                   <button
                     type="button"
                     onClick={() => setShowFileEventoPopup(true)}
-                    className="search-input"
-                    style={{ textAlign: "left", cursor: "pointer", height: 44, display: "flex", alignItems: "center", justifyContent: "space-between" }}
+                    className="filter-btn"
+                    style={{ width: "auto", gap: 8, padding: "0 14px", color: "#FFF", fontSize: "13px", fontWeight: "600" }}
                   >
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fileEventoFilter.length > 0 ? `${fileEventoFilter.length} file(s)` : "File/Evento"}</span>
-                    <span style={{ fontSize: 10, color: "var(--text-placeholder)", flexShrink: 0 }}>▼</span>
+                    <span>{fileEventoFilter.length > 0 ? `${fileEventoFilter.length} file(s)` : "File/Evento"}</span>
                   </button>
                   {showFileEventoPopup && (
                     <div onClick={() => setShowFileEventoPopup(false)} style={{ position: "fixed", inset: 0, zIndex: 2000 }}>
-                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: 5, left: "50%", transform: "translateX(-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
                         <h3 style={{ color: "var(--primary)", fontSize: 16, fontWeight: 700, marginBottom: 16, textTransform: "uppercase", letterSpacing: 1 }}>Filtrar por File/Evento</h3>
                         <button type="button" onClick={() => { setFileEventoFilter([]); }} style={{ display: "block", width: "100%", padding: "10px 14px", textAlign: "left", background: fileEventoFilter.length === 0 ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: fileEventoFilter.length === 0 ? 700 : 400, marginBottom: 4 }}>
                           📋 Todos os files/eventos
@@ -1366,19 +1370,18 @@ export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers 
                     </div>
                   )}
                 </div>
-                <div className="search-container" style={{ flex: "0 0 150px" }}>
+                <div className="search-container" style={{ flex: "0 0 auto", width: "auto" }}>
                   <button
                     type="button"
                     onClick={() => setShowMotoristaPopup(true)}
-                    className="search-input"
-                    style={{ textAlign: "left", cursor: "pointer", height: 44, display: "flex", alignItems: "center", justifyContent: "space-between" }}
+                    className="filter-btn"
+                    style={{ width: "auto", gap: 8, padding: "0 14px", color: "#FFF", fontSize: "13px", fontWeight: "600" }}
                   >
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{motoristaFilter.length > 0 ? `${motoristaFilter.length} motorista(s)` : "Motorista"}</span>
-                    <span style={{ fontSize: 10, color: "var(--text-placeholder)", flexShrink: 0 }}>▼</span>
+                    <span>{motoristaFilter.length > 0 ? `${motoristaFilter.length} motorista(s)` : "Motorista"}</span>
                   </button>
                   {showMotoristaPopup && (
                     <div onClick={() => setShowMotoristaPopup(false)} style={{ position: "fixed", inset: 0, zIndex: 2000 }}>
-                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: 5, left: "50%", transform: "translateX(-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
                         <h3 style={{ color: "var(--primary)", fontSize: 16, fontWeight: 700, marginBottom: 16, textTransform: "uppercase", letterSpacing: 1 }}>Filtrar por Motorista</h3>
                         <button type="button" onClick={() => { setMotoristaFilter([]); }} style={{ display: "block", width: "100%", padding: "10px 14px", textAlign: "left", background: motoristaFilter.length === 0 ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: motoristaFilter.length === 0 ? 700 : 400, marginBottom: 4 }}>
                           📋 Todos os motoristas
@@ -1404,12 +1407,18 @@ export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers 
                     </div>
                   )}
                 </div>
-                <button type="button" onClick={() => { setFornecedorFilter([]); setFornecedorError(false); setDataFilter([]); setFileEventoFilter([]); setMotoristaFilter([]); }} style={{ fontSize: 12, padding: "0 14px", height: 44, background: "var(--bg-input)", border: "1px solid var(--border-color)", borderRadius: 20, cursor: "pointer", color: "var(--text-main)", whiteSpace: "nowrap", flexShrink: 0 }}>
-                  Limpar Filtro
+                <button type="button" onClick={() => { setFornecedorFilter([]); setFornecedorError(false); setDataFilter([]); setFileEventoFilter([]); setMotoristaFilter([]); }} className="filter-btn" style={{ width: "auto", gap: 8, padding: "0 14px", color: "#ff6b6b", background: "rgba(255,107,107,0.12)", border: "1px solid rgba(255,107,107,0.3)", fontSize: "13px", fontWeight: "600" }}>
+                  <span>Limpar</span>
                 </button>
+                {fornecedorError && <span style={{ color: "#ff6b6b", fontSize: "12px", fontWeight: "600", whiteSpace: "nowrap", display: "flex", alignItems: "center" }}>Escolha um fornecedor.</span>}
+                <div className="scroll-hint" style={{ marginLeft: "auto", display: hasHorizontalScroll ? "flex" : "none", alignItems: "center", gap: 8 }}>
+                  <span className="scroll-hint-text">← segure e arraste →</span>
+                  <span className="scroll-hint-track">
+                    <span className="scroll-hint-thumb"></span>
+                  </span>
+                </div>
               </div>
-              {fornecedorError && <p className="section-error-msg" style={{ marginTop: 4, marginBottom: 0 }}>Escolha um fornecedor no filtro acima.</p>}
-            <div className="table-responsive spreadsheet-container">
+            <div className="table-responsive spreadsheet-container" ref={tableRef} style={{ cursor: "grab" }}>
               <table className="spreadsheet-table">
                 <thead>
                   <tr>
@@ -1434,7 +1443,7 @@ export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers 
                 <tbody>
                   {sortedEntries.length === 0 ? (
                     <tr>
-                      <td colSpan={17} style={{ textAlign: "center", padding: 40, color: "var(--text-placeholder)", fontStyle: "italic" }}>
+                      <td colSpan={16} style={{ textAlign: "center", padding: 40, color: "var(--text-placeholder)", fontStyle: "italic" }}>
                         Nenhuma ordem de serviço pendente.
                       </td>
                     </tr>
@@ -1465,10 +1474,12 @@ export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers 
                           <span key={i}>{i > 0 && <br />}{line}</span>
                         ))}</> : ""}
                       </td>
-                      <td className="actions-cell">
+                       <td className="actions-cell">
                         {selectMode ? (
                           <div style={{ display: "flex", justifyContent: "center" }}>
-                            <input type="checkbox" checked={selectedIds.has(i)} onChange={() => toggleSelectEntry(i)} style={{ cursor: "pointer", width: 16, height: 16 }} />
+                            <button type="button" onClick={() => toggleSelectEntry(i)} className={`action-icon-btn select${selectedIds.has(i) ? " selected" : ""}`} title={selectedIds.has(i) ? "Desmarcar" : "Selecionar"} style={selectedIds.has(i) ? { background: "var(--primary)", color: "#000", borderRadius: "50%" } : {}}>
+                              {selectedIds.has(i) ? "✓" : ""}
+                            </button>
                           </div>
                         ) : (
                           <div className="spreadsheet-actions justify-end" style={{ gap: 4 }}>

@@ -1,12 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
-
-const formatDateBR = (val) => {
-  if (!val) return "";
-  if (val.includes("/")) return val;
-  const parts = val.split("-");
-  if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-  return val;
-};
+import { formatDateBR } from "../utils/formatters";
 
 export default function MapaServicoPreview({ entries, empresa, showFinanceiro, isLocked, onBack, onDownload, onBackToHistory, isOS }) {
   const fornecedor = entries[0]?.fornecedor || "";

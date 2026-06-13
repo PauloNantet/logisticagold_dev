@@ -1,132 +1,46 @@
-/* THEME: GREEN */
+/* THEME: GREEN - Dark UI + Green accents + Green paper */
 body[data-theme="green"] {
   --primary: #22c55e;
   --primary-hover: #4ade80;
   --primary-dark: #16a34a;
-  --border-color: #22c55e;
-  --input-border: #16a34a;
-  --shadow-glow: rgba(22, 163, 74, 0.3);
+  --primary-glow: rgba(34, 197, 94, 0.15);
+  --primary-glow-strong: rgba(34, 197, 94, 0.3);
+  --border-active: rgba(34, 197, 94, 0.3);
+  --border-color: rgba(34, 197, 94, 0.15);
+  --input-border: rgba(34, 197, 94, 0.2);
+  --shadow-glow: 0 0 30px rgba(34, 197, 94, 0.15);
 }
 
-.invoice-paper.theme-green .invoice-header {
-  border-bottom: 2px solid #16a34a !important;
-}
-
+.invoice-paper.theme-green .invoice-header { border-bottom: 2px solid #16a34a !important; }
 .invoice-paper.theme-green .company-name,
-.invoice-paper.theme-green .document-title {
-  color: #16a34a !important;
-  text-shadow: 0 0 8px rgba(22, 163, 74, 0.4);
-}
-
-.invoice-paper.theme-green .box-title {
-  color: #16a34a !important;
-  text-shadow: 0 0 8px rgba(22, 163, 74, 0.4);
-}
-
+.invoice-paper.theme-green .document-title,
+.invoice-paper.theme-green .box-title { color: #16a34a !important; text-shadow: 0 0 8px rgba(22,163,74,0.4); }
+.invoice-paper.theme-green .thanks,
+.invoice-paper.theme-green .pix-title { color: #16a34a !important; text-shadow: 0 0 8px rgba(22,163,74,0.4); }
+.invoice-paper.theme-green .client-name,
+.invoice-paper.theme-green .responsible-name { color: #000000 !important; }
+.invoice-paper.theme-green .item-name,
+.invoice-paper.theme-green .info-value { color: #555555 !important; }
+.invoice-paper.theme-green .invoice-footer { border-top: 2px solid #16a34a !important; }
+.invoice-paper.theme-green .summary-rows,
+.invoice-paper.theme-green .total-main-row { border-top: 2px solid #16a34a !important; }
+.invoice-paper.theme-green .total-main-row .total-value { color: #16a34a !important; text-shadow: 0 0 8px rgba(22,163,74,0.4); }
+.invoice-paper.theme-green .invoice-table { border-collapse: collapse; border: 2px solid #999999; }
+.invoice-paper.theme-green .invoice-table thead { background-color: #ffffff !important; }
+.invoice-paper.theme-green .invoice-table th { color: #16a34a !important; border: 2px solid #999999; text-shadow: 0 0 8px rgba(22,163,74,0.4); }
+.invoice-paper.theme-green .invoice-table tbody { background-color: #ffffff !important; }
+.invoice-paper.theme-green .invoice-table td { border: 2px solid #999999; color: #888888 !important; }
+.invoice-paper.theme-green .invoice-logo { border-color: #16a34a !important; border-width: 2px; box-shadow: 0 4px 15px rgba(22,163,74,0.3); }
+.invoice-paper.theme-green .client-box,
+.invoice-paper.theme-green .responsible-box,
+.invoice-paper.theme-green .pix-box,
+.invoice-paper.theme-green .obs-content { background-color: #ffffff !important; border: 2px solid #16a34a !important; box-shadow: 0 2px 12px rgba(22,163,74,0.15); }
+.invoice-paper.theme-green .obs-content { border-left-width: 6px !important; }
 .invoice-paper.theme-green .info-label,
 .invoice-paper.theme-green .total-main-row .total-label,
-.invoice-paper.theme-green .row-label {
-  color: #555555 !important;
-}
-
-.invoice-paper.theme-green .thanks {
-  color: #16a34a !important;
-  text-shadow: 0 0 8px rgba(22, 163, 74, 0.4);
-}
-
-.invoice-paper.theme-green .pix-title {
-  color: #16a34a !important;
-  text-shadow: 0 0 8px rgba(22, 163, 74, 0.4);
-}
-
-.invoice-paper.theme-green .client-name,
-.invoice-paper.theme-green .responsible-name {
-  color: #000000 !important;
-}
-
-.invoice-paper.theme-green .item-name,
-.invoice-paper.theme-green .info-value {
-  color: #555555 !important;
-}
-
-.invoice-paper.theme-green .invoice-footer {
-  border-top: 2px solid #16a34a !important;
-}
-
-.invoice-paper.theme-green .summary-rows {
-  border-top: 2px solid #16a34a !important;
-}
-
-.invoice-paper.theme-green .total-main-row {
-  border-top: 2px solid #16a34a !important;
-}
-
-.invoice-paper.theme-green .total-main-row .total-value {
-  color: #16a34a !important;
-  text-shadow: 0 0 8px rgba(22, 163, 74, 0.4);
-}
-
-.invoice-paper.theme-green .invoice-table {
-  border-collapse: collapse;
-  border: 2px solid #999999;
-}
-
-.invoice-paper.theme-green .invoice-table thead {
-  background-color: #ffffff !important;
-}
-
-.invoice-paper.theme-green .invoice-table th {
-  color: #16a34a !important;
-  border: 2px solid #999999;
-  text-shadow: 0 0 8px rgba(22, 163, 74, 0.4);
-}
-
-.invoice-paper.theme-green .invoice-table tbody {
-  background-color: #ffffff !important;
-}
-
-.invoice-paper.theme-green .invoice-table td {
-  border: 2px solid #999999;
-  color: #888888 !important;
-}
-
+.invoice-paper.theme-green .row-label { color: #555555 !important; }
 .invoice-paper.theme-green .client-data p,
-.invoice-paper.theme-green .responsible-data p {
-  color: #000000 !important;
-}
-
+.invoice-paper.theme-green .responsible-data p { color: #000000 !important; }
 .invoice-paper.theme-green .pix-key,
-.invoice-paper.theme-green .row-value {
-  color: #888888 !important;
-}
-
-.invoice-paper.theme-green .item-desc {
-  color: #aaaaaa !important;
-}
-
-.invoice-paper.theme-green .invoice-logo {
-  border-color: #16a34a !important;
-  border-width: 2px;
-  box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3);
-}
-
-.invoice-paper.theme-green .client-box,
-.invoice-paper.theme-green .responsible-box {
-  background-color: #ffffff !important;
-  border: 2px solid #16a34a !important;
-  box-shadow: 0 2px 12px rgba(22, 163, 74, 0.15);
-}
-
-.invoice-paper.theme-green .pix-box {
-  background-color: #ffffff !important;
-  border: 2px solid #16a34a !important;
-  box-shadow: 0 2px 12px rgba(22, 163, 74, 0.15);
-}
-
-.invoice-paper.theme-green .obs-content {
-  background-color: #ffffff !important;
-  border: 2px solid #16a34a !important;
-  border-left-width: 6px !important;
-  color: #888888 !important;
-  box-shadow: 0 2px 12px rgba(22, 163, 74, 0.15);
-}
+.invoice-paper.theme-green .row-value { color: #888888 !important; }
+.invoice-paper.theme-green .item-desc { color: #aaaaaa !important; }

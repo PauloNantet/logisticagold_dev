@@ -1,17 +1,11 @@
 import { useLayoutEffect, useRef, useState } from "react";
+import { formatDateBR } from "../utils/formatters";
 
 export default function ServiceOrderPreview({ data, qrCode, total, finalTotal, isLocked, onBack, onDownload, onBackToHistory, elementId = "ordem-servico" }) {
   const wrapperRef = useRef(null);
   const osRef = useRef(null);
   const scaleRef = useRef(1);
   const [scale, setScale] = useState(1);
-
-  const formatDateBR = (val) => {
-    if (!val) return "";
-    const parts = val.split("-");
-    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    return val;
-  };
 
   const calcScale = () => {
     const wrapper = wrapperRef.current;

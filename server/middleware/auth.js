@@ -1,6 +1,9 @@
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "fatura-app-secret-key-change-in-production";
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET não definido nas variáveis de ambiente. Configure-o no .env");
+}
 
 export function generateToken(user) {
   return jwt.sign(

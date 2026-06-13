@@ -103,9 +103,12 @@ export default function VehiclesModal({ onClose }) {
               )}
             </div>
             {!isAdding && (
-              <div className="search-container">
-                <input type="text" placeholder="Buscar modelo, placa ou marca..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="search-input" />
-                <span className="search-icon">🔍</span>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <div className="search-container">
+                  <input type="text" placeholder="Buscar modelo, placa ou marca..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="search-input" />
+                  <span className="search-icon">🔍</span>
+                </div>
+                <button onClick={startAdding} className="add-client-btn-main">+ Novo Veículo</button>
               </div>
             )}
           </div>
@@ -145,10 +148,6 @@ export default function VehiclesModal({ onClose }) {
             </form>
           ) : (
             <div className="clients-list-container">
-              <div className="clients-list-header">
-                <button onClick={startAdding} className="add-client-btn-main">+ Novo Veículo</button>
-              </div>
-
               {vehicles.length === 0 ? (
                 <div className="empty-clients">Nenhum veículo cadastrado.</div>
               ) : (

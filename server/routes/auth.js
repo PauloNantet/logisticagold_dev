@@ -22,8 +22,12 @@ function validateUsername(username) {
   return null;
 }
 
-const ADMIN_USERNAME = "cainn";
-const ADMIN_PASSWORD = "cainn";
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+if (!ADMIN_USERNAME || !ADMIN_PASSWORD) {
+  console.warn("AVISO: ADMIN_USERNAME e/ou ADMIN_PASSWORD não definidos no .env. O admin padrão não será criado.");
+}
 
 async function seedAdminData() {
   const seedDir = path.join(__dirname, "..", "seed");
@@ -95,6 +99,7 @@ async function seedAdminData() {
 }
 
 async function ensureAdmin() {
+  if (!ADMIN_USERNAME || !ADMIN_PASSWORD) return;
   const { rows } = await pool.query("SELECT id FROM users WHERE username = $1", [ADMIN_USERNAME]);
   if (rows.length === 0) {
     const hash = bcrypt.hashSync(ADMIN_PASSWORD, 10);

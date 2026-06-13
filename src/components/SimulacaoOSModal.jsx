@@ -1,12 +1,6 @@
 import { useState } from "react";
+import { formatDateBR } from "../utils/formatters";
 import ConfirmDialog from "./ConfirmDialog";
-
-const formatDateBR = (val) => {
-  if (!val) return "";
-  const parts = val.split("-");
-  if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-  return val;
-};
 
 export default function SimulacaoOSModal({ data, onDelete, onRestore, onView, onClose }) {
   const [fornecedorFilter, setFornecedorFilter] = useState("");
@@ -72,7 +66,7 @@ export default function SimulacaoOSModal({ data, onDelete, onRestore, onView, on
               </button>
               {showFornecedorPopup && (
                 <div onClick={() => setShowFornecedorPopup(false)} style={{ position: "fixed", inset: 0, zIndex: 2000 }}>
-                  <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+                  <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: 5, left: "50%", transform: "translateX(-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
                     <h3 style={{ color: "var(--primary)", fontSize: 16, fontWeight: 700, marginBottom: 16, textTransform: "uppercase", letterSpacing: 1 }}>Filtrar por Fornecedor</h3>
                     <button type="button" onClick={() => { setFornecedorFilter(""); setShowFornecedorPopup(false); }} style={{ display: "block", width: "100%", padding: "10px 14px", textAlign: "left", background: !fornecedorFilter ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: !fornecedorFilter ? 700 : 400, marginBottom: 4 }}>
                       📋 Todos os fornecedores
@@ -102,7 +96,7 @@ export default function SimulacaoOSModal({ data, onDelete, onRestore, onView, on
               </button>
               {showDatePopup && (
                 <div onClick={() => setShowDatePopup(false)} style={{ position: "fixed", inset: 0, zIndex: 2000 }}>
-                  <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+                  <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: 5, left: "50%", transform: "translateX(-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
                     <h3 style={{ color: "var(--primary)", fontSize: 16, fontWeight: 700, marginBottom: 16, textTransform: "uppercase", letterSpacing: 1 }}>Filtrar por Data</h3>
                     <button type="button" onClick={() => { setDataFilter(""); setShowDatePopup(false); }} style={{ display: "block", width: "100%", padding: "10px 14px", textAlign: "left", background: !dataFilter ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: !dataFilter ? 700 : 400, marginBottom: 4 }}>
                       📋 Todas as datas

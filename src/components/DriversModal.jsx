@@ -1,70 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../utils/api";
+import { formatPhone, handlePhoneKeyDown, handlePhoneInput } from "../utils/formatters";
 import ConfirmDialog from "./ConfirmDialog";
-
-const formatPhone = (val) => {
-  const digits = val.replace(/\D/g, "").slice(0, 22);
-  if (!digits) return "";
-  const parts = [];
-  let i = 0;
-  while (i < digits.length) {
-    const remaining = digits.length - i;
-    const take = remaining >= 11 ? 11 : remaining >= 10 ? 10 : remaining;
-    const chunk = digits.slice(i, i + take);
-    if (chunk.length >= 7) {
-      parts.push(`${chunk.slice(0, 2)} ${chunk.slice(2, 7)}-${chunk.slice(7)}`);
-    } else if (chunk.length > 2) {
-      parts.push(`${chunk.slice(0, 2)} ${chunk.slice(2)}`);
-    } else {
-      parts.push(chunk);
-    }
-    i += take;
-  }
-  return parts.join(" / ");
-};
-
-const handlePhoneKeyDown = (e, updater) => {
-  if (e.key !== "Backspace" && e.key !== "Delete") return;
-  const input = e.target;
-  const pos = input.selectionStart;
-  const val = input.value;
-
-  if (e.key === "Backspace" && pos > 0 && !/\d/.test(val[pos - 1])) {
-    e.preventDefault();
-    let removeStart = pos - 1;
-    while (removeStart > 0 && !/\d/.test(val[removeStart - 1])) removeStart--;
-    if (removeStart > 0) removeStart--;
-    const newVal = val.slice(0, removeStart) + val.slice(pos);
-    const formatted = formatPhone(newVal);
-    const newPos = Math.min(removeStart, formatted.length);
-    updater(formatted);
-    requestAnimationFrame(() => { input.selectionStart = newPos; input.selectionEnd = newPos; });
-  } else if (e.key === "Delete" && pos < val.length && !/\d/.test(val[pos])) {
-    e.preventDefault();
-    let removeEnd = pos + 1;
-    while (removeEnd < val.length && !/\d/.test(val[removeEnd])) removeEnd++;
-    if (removeEnd < val.length) removeEnd++;
-    const newVal = val.slice(0, pos) + val.slice(removeEnd);
-    const formatted = formatPhone(newVal);
-    const newPos = Math.min(pos, formatted.length);
-    updater(formatted);
-    requestAnimationFrame(() => { input.selectionStart = newPos; input.selectionEnd = newPos; });
-  }
-};
-
-const handlePhoneInput = (e, updater) => {
-  const input = e.target;
-  const formatted = formatPhone(input.value);
-  const pos = input.selectionStart;
-  const oldLen = input.value.length;
-  const newLen = formatted.length;
-  let newPos = pos;
-  if (newLen > oldLen) newPos = pos + (newLen - oldLen);
-  else if (newLen < oldLen) newPos = Math.max(0, pos - (oldLen - newLen));
-  newPos = Math.min(newPos, formatted.length);
-  updater(formatted);
-  requestAnimationFrame(() => { input.selectionStart = newPos; input.selectionEnd = newPos; });
-};
 
 const sortData = (data, key, dir) => {
   return [...data].sort((a, b) => {
@@ -166,9 +103,12 @@ export default function DriversModal({ onClose }) {
               )}
             </div>
             {!isAdding && (
-              <div className="search-container">
-                <input type="text" placeholder="Buscar nome ou contato..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="search-input" />
-                <span className="search-icon">🔍</span>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <div className="search-container">
+                  <input type="text" placeholder="Buscar nome ou contato..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="search-input" />
+                  <span className="search-icon">🔍</span>
+                </div>
+                <button onClick={startAdding} className="add-client-btn-main">+ Novo Motorista</button>
               </div>
             )}
           </div>
@@ -197,10 +137,6 @@ export default function DriversModal({ onClose }) {
             </form>
           ) : (
             <div className="clients-list-container">
-              <div className="clients-list-header">
-                <button onClick={startAdding} className="add-client-btn-main">+ Novo Motorista</button>
-              </div>
-
               {drivers.length === 0 ? (
                 <div className="empty-clients">Nenhum motorista cadastrado.</div>
               ) : (

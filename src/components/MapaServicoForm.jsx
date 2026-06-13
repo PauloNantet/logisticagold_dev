@@ -1,112 +1,30 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../utils/api";
+import { formatDateBR, handlePhoneKeyDown, handlePhoneInput, autoResize, formatCurrency } from "../utils/formatters";
+import { InputField } from "../utils/components";
 import ConfirmDialog from "./ConfirmDialog";
 
-const formatDateBR = (val) => {
-  if (!val) return "";
-  if (val.includes("/")) return val;
-  const parts = val.split("-");
-  if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-  return val;
+const EMPTY_ENTRY = {
+  fornecedor: "",
+  numero: "",
+  data: "",
+  hora: "",
+  voo: "",
+  servico: "",
+  nome_guia: "",
+  tel_guia: "",
+  nome_pax: "",
+  pax: "",
+  file_evento: "",
+  cliente: { nome: "", documento: "", email: "", endereco: "" },
+  observacao: "",
+  veiculo: "",
+  placa: "",
+  motorista: "",
+  contato_motorista: "",
+  valor_pagar: "",
+  valor_receber: "",
 };
-
-const formatPhone = (val) => {
-  const digits = val.replace(/\D/g, "").slice(0, 22);
-  if (!digits) return "";
-  const parts = [];
-  let i = 0;
-  while (i < digits.length) {
-    const remaining = digits.length - i;
-    const take = remaining >= 11 ? 11 : remaining >= 10 ? 10 : remaining;
-    const chunk = digits.slice(i, i + take);
-    if (chunk.length >= 7) {
-      parts.push(`${chunk.slice(0, 2)} ${chunk.slice(2, 7)}-${chunk.slice(7)}`);
-    } else if (chunk.length > 2) {
-      parts.push(`${chunk.slice(0, 2)} ${chunk.slice(2)}`);
-    } else {
-      parts.push(chunk);
-    }
-    i += take;
-  }
-  return parts.join(" / ");
-};
-
-const handlePhoneKeyDown = (e, updater) => {
-  if (e.key !== "Backspace" && e.key !== "Delete") return;
-  const input = e.target;
-  const pos = input.selectionStart;
-  const val = input.value;
-
-  if (e.key === "Backspace" && pos > 0 && !/\d/.test(val[pos - 1])) {
-    e.preventDefault();
-    let removeStart = pos - 1;
-    while (removeStart > 0 && !/\d/.test(val[removeStart - 1])) removeStart--;
-    if (removeStart > 0) removeStart--;
-    const newVal = val.slice(0, removeStart) + val.slice(pos);
-    const formatted = formatPhone(newVal);
-    const newPos = Math.min(removeStart, formatted.length);
-    updater(formatted);
-    requestAnimationFrame(() => { input.selectionStart = newPos; input.selectionEnd = newPos; });
-  } else if (e.key === "Delete" && pos < val.length && !/\d/.test(val[pos])) {
-    e.preventDefault();
-    let removeEnd = pos + 1;
-    while (removeEnd < val.length && !/\d/.test(val[removeEnd])) removeEnd++;
-    if (removeEnd < val.length) removeEnd++;
-    const newVal = val.slice(0, pos) + val.slice(removeEnd);
-    const formatted = formatPhone(newVal);
-    const newPos = Math.min(pos, formatted.length);
-    updater(formatted);
-    requestAnimationFrame(() => { input.selectionStart = newPos; input.selectionEnd = newPos; });
-  }
-};
-
-const handlePhoneInput = (e, updater) => {
-  const input = e.target;
-  const formatted = formatPhone(input.value);
-  const pos = input.selectionStart;
-  const oldLen = input.value.length;
-  const newLen = formatted.length;
-  let newPos = pos;
-  if (newLen > oldLen) newPos = pos + (newLen - oldLen);
-  else if (newLen < oldLen) newPos = Math.max(0, pos - (oldLen - newLen));
-  newPos = Math.min(newPos, formatted.length);
-  updater(formatted);
-  requestAnimationFrame(() => { input.selectionStart = newPos; input.selectionEnd = newPos; });
-};
-
-const autoResize = (el) => {
-  if (!el) return;
-  el.style.height = "40px";
-  el.style.height = el.scrollHeight + "px";
-};
-
-const formatCurrency = (val) => {
-  let digits = val.replace(/\D/g, "");
-  if (!digits) return "";
-  digits = digits.replace(/^0+/, "") || "0";
-  while (digits.length < 3) digits = "0" + digits;
-  const intPart = digits.slice(0, -2);
-  const decPart = digits.slice(-2);
-  const formatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  return `${formatted},${decPart}`;
-};
-
-const InputField = ({ label, value, onChange, onInput, onKeyDown, onBlur, type = "text", placeholder = "", error = false, inputRef }) => (
-  <div className={`input-group${error ? ' input-error' : ''}`}>
-    <label className="input-label">{label}</label>
-    <input
-      ref={inputRef}
-      type={type}
-      value={value}
-      onChange={onChange}
-      onInput={onInput}
-      onKeyDown={onKeyDown}
-      onBlur={onBlur}
-      placeholder={placeholder}
-      className={`custom-input${error ? ' input-error' : ''}`}
-    />
-  </div>
-);
 
 export default function MapaServicoForm({
   entries, setEntries, clients, vehicles,
@@ -128,7 +46,6 @@ export default function MapaServicoForm({
     file_evento: "",
     cliente: { nome: "", documento: "", email: "", endereco: "" },
     observacao: "",
-    tel_guia: "",
     veiculo: "",
     placa: "",
     motorista: "",
@@ -139,6 +56,7 @@ export default function MapaServicoForm({
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [showFinanceiro, setShowFinanceiro] = useState(false);
+  const [hasHorizontalScroll, setHasHorizontalScroll] = useState(false);
   const [fornecedorFilter, setFornecedorFilter] = useState([]);
   const [fileEventoFilter, setFileEventoFilter] = useState([]);
   const [motoristaFilter, setMotoristaFilter] = useState([]);
@@ -187,6 +105,59 @@ export default function MapaServicoForm({
   const [filteredDrivers, setFilteredDrivers] = useState([]);
   const [focusedDriverIndex, setFocusedDriverIndex] = useState(-1);
   const driverSuggestionsRef = useRef(null);
+
+  const tableRef = useRef(null);
+
+  useEffect(() => {
+    const el = tableRef.current;
+    if (!el) return;
+    let isDown = false, startX, scrollLeft;
+
+    const onMouseDown = (e) => {
+      if (e.target.closest("button")) return;
+      isDown = true;
+      startX = e.pageX - el.offsetLeft;
+      scrollLeft = el.scrollLeft;
+      el.classList.add("is-dragging");
+    };
+
+    const onMouseMove = (e) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - el.offsetLeft;
+      const walk = (startX - x) * 1.5;
+      el.scrollLeft = scrollLeft + walk;
+    };
+
+    const onMouseUp = () => {
+      isDown = false;
+      el.classList.remove("is-dragging");
+    };
+
+    el.addEventListener("mousedown", onMouseDown);
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+
+    return () => {
+      el.removeEventListener("mousedown", onMouseDown);
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+  }, [loading]);
+
+  useEffect(() => {
+    const el = tableRef.current;
+    if (!el) return;
+    const check = () => setHasHorizontalScroll(el.scrollWidth > el.clientWidth + 1);
+    check();
+    const observer = new ResizeObserver(check);
+    observer.observe(el);
+    window.addEventListener("resize", check);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", check);
+    };
+  }, [loading, showFinanceiro, entries.length]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -267,10 +238,6 @@ export default function MapaServicoForm({
     if (h.length > 0 && h.length < 4) {
       setEntry(prev => ({ ...prev, hora: "" }));
     }
-  };
-
-  const updateEntryOs = (field, value) => {
-    setEntry(prev => ({ ...prev, os: { ...prev.os, [field]: value } }));
   };
 
   const updateEntryClient = (field, value) => {
@@ -397,6 +364,20 @@ export default function MapaServicoForm({
   };
 
   const [formErrors, setFormErrors] = useState({ fornecedor: false, numero: false, data: false });
+
+  // Lucro computation (memoized)
+  const lucro = useMemo(() => {
+    const pagar = parseFloat((entry.valor_pagar || "0").replace(/\./g, "").replace(",", ".")) || 0;
+    const receber = parseFloat((entry.valor_receber || "0").replace(/\./g, "").replace(",", ".")) || 0;
+    return receber - pagar;
+  }, [entry.valor_pagar, entry.valor_receber]);
+
+  const lucroColor = lucro >= 0 ? "#22c55e" : "#ef4444";
+  const lucroFormatted = (() => {
+    const abs = Math.abs(lucro);
+    const formatted = abs.toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return lucro >= 0 ? `+ ${formatted}` : `- ${formatted}`;
+  })();
 
   const addOrUpdateEntry = async () => {
     const errors = {
@@ -610,18 +591,18 @@ export default function MapaServicoForm({
               <div className="form-row-single">
               <div className="input-group">
                 <label className="input-label">Serviço</label>
-                <textarea ref={servicoRef} value={entry.servico} onChange={(e) => updateEntry("servico", e.target.value)} onInput={() => autoResize(servicoRef.current)} placeholder="Tipo de serviço" className="custom-input" />
+                <textarea ref={servicoRef} value={entry.servico} onChange={(e) => updateEntry("servico", e.target.value)} onInput={() => autoResize(servicoRef.current)} placeholder="Tipo de serviço" className="custom-input mapa-servico-textarea" />
               </div>
             </div>
               <div className="form-row-3">
-                <div style={{ flex: 1 }}><InputField label="Nome do Guia" value={entry.nome_guia} onChange={(e) => updateEntry("nome_guia", e.target.value)} placeholder="Nome do guia" /></div>
-                <div style={{ flex: 1 }}><InputField label="Contato do Guia" value={entry.tel_guia} onKeyDown={(e) => handlePhoneKeyDown(e, (v) => updateEntry("tel_guia", v))} onInput={(e) => handlePhoneInput(e, (v) => updateEntry("tel_guia", v))} placeholder="Ex: 21 99292-1544 / 21 98985-5252" /></div>
-                <div style={{ flex: 1 }}><InputField label="Nome do PAX" value={entry.nome_pax} onChange={(e) => updateEntry("nome_pax", e.target.value)} placeholder="Nome do passageiro" /></div>
+                <div style={{ flex: 2 }}><InputField label="Nome do Guia" value={entry.nome_guia} onChange={(e) => updateEntry("nome_guia", e.target.value)} placeholder="Nome do guia" /></div>
+                <div style={{ flex: 2 }}><InputField label="Contato do Guia" value={entry.tel_guia} onKeyDown={(e) => handlePhoneKeyDown(e, (v) => updateEntry("tel_guia", v))} onInput={(e) => handlePhoneInput(e, (v) => updateEntry("tel_guia", v))} placeholder="Ex: 21 99292-1544 / 21 98985-5252" /></div>
+                <div style={{ flex: 2 }}><InputField label="Nome do PAX" value={entry.nome_pax} onChange={(e) => updateEntry("nome_pax", e.target.value)} placeholder="Nome do passageiro" /></div>
                 <div style={{ flex: 1 }}><InputField label="PAX" value={entry.pax} onChange={(e) => updateEntry("pax", e.target.value)} placeholder="Nº de passageiros" /></div>
               </div>
             <div className="form-row-3">
               <div style={{ flex: 1 }}><InputField label="File / Evento" value={entry.file_evento} onChange={(e) => updateEntry("file_evento", e.target.value)} placeholder="File ou evento" /></div>
-              <div className="relative-container" style={{ flex: 1 }}>
+              <div className="relative-container" style={{ flex: 2 }}>
                 <div className="input-group">
                   <label className="input-label">Cliente</label>
                   <input type="text" value={entry.cliente.nome} onChange={(e) => handleClientNameChange(e.target.value)} onFocus={() => entry.cliente.nome && handleClientNameChange(entry.cliente.nome)} onKeyDown={handleClientKeyDown} autoComplete="off" className="custom-input" placeholder="Comece a digitar..." />
@@ -641,7 +622,7 @@ export default function MapaServicoForm({
             <div className="form-row-single">
               <div className="input-group">
                 <label className="input-label">Observação</label>
-                <textarea ref={observacaoRef} value={entry.observacao} onChange={(e) => updateEntry("observacao", e.target.value)} onInput={() => autoResize(observacaoRef.current)} placeholder="Observações" className="custom-input" />
+                <textarea ref={observacaoRef} value={entry.observacao} onChange={(e) => updateEntry("observacao", e.target.value)} onInput={() => autoResize(observacaoRef.current)} placeholder="Observações" className="custom-input mapa-servico-textarea" />
               </div>
             </div>
               <div className="form-row-3">
@@ -711,22 +692,8 @@ export default function MapaServicoForm({
                       }}
                     >
                       <span style={{ color: "var(--text-secondary)", fontSize: "12px" }}>R$</span>
-                      <span style={{ 
-                        color: (() => {
-                          const pagar = parseFloat((entry.valor_pagar || "0").replace(/\./g, "").replace(",", ".")) || 0;
-                          const receber = parseFloat((entry.valor_receber || "0").replace(/\./g, "").replace(",", ".")) || 0;
-                          const diff = receber - pagar;
-                          return diff >= 0 ? "#22c55e" : "#ef4444";
-                        })()
-                      }}>
-                        {(() => {
-                          const pagar = parseFloat((entry.valor_pagar || "0").replace(/\./g, "").replace(",", ".")) || 0;
-                          const receber = parseFloat((entry.valor_receber || "0").replace(/\./g, "").replace(",", ".")) || 0;
-                          const diff = receber - pagar;
-                          const abs = Math.abs(diff);
-                          const formatted = abs.toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-                          return diff >= 0 ? `+ ${formatted}` : `- ${formatted}`;
-                        })()}
+                      <span style={{ color: lucroColor }}>
+                        {lucroFormatted}
                       </span>
                     </div>
                   </div>
@@ -749,14 +716,15 @@ export default function MapaServicoForm({
           <section className="section-card">
             <div className="clients-list-container">
               <div className="modal-header-row">
-                <h3 className="section-title" style={{ margin: 0 }}>Serviços Agendados</h3>
-                <span className="table-count-header">
-                  {sortedEntries.length < entries.length
-                    ? `${sortedEntries.length} de ${entries.length}`
-                    : `${entries.length}`} serviço{entries.length !== 1 ? "s" : ""}
-                </span>
-
-                <div style={{ display: "flex", gap: 8, marginLeft: "auto", alignItems: "center" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
+                  <h3 className="section-title" style={{ margin: 0 }}>Serviços Agendados</h3>
+                  <span className="table-count-header">
+                    {sortedEntries.length < entries.length
+                      ? `${sortedEntries.length} de ${entries.length}`
+                      : `${entries.length}`} serviço{entries.length !== 1 ? "s" : ""}
+                  </span>
+                </div>
+                <div style={{ display: "flex", gap: 8, alignItems: "center", marginLeft: "auto" }}>
                   <button
                     type="button"
                     onClick={() => setShowFinanceiro(prev => !prev)}
@@ -772,20 +740,19 @@ export default function MapaServicoForm({
                   </button>
                 </div>
               </div>
-              <div style={{ display: "flex", gap: 4, maxWidth: "100%" }}>
-                <div className="search-container" style={{ flex: "0 0 220px" }}>
+              <div style={{ display: "flex", gap: 6, maxWidth: "100%", alignItems: "center" }}>
+                <div className="search-container" style={{ flex: "0 0 auto", width: "auto" }}>
                   <button
                     type="button"
                     onClick={() => setShowFornecedorPopup(true)}
-                    className="search-input"
-                    style={{ textAlign: "left", cursor: "pointer", height: 44, display: "flex", alignItems: "center", justifyContent: "space-between" }}
+                    className="filter-btn"
+                    style={{ width: "auto", gap: 8, padding: "0 14px", color: "#FFF", fontSize: "13px", fontWeight: "600" }}
                   >
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fornecedorFilter.length > 0 ? `${fornecedorFilter.length} fornecedor(es)` : "Fornecedor"}</span>
-                    <span style={{ fontSize: 10, color: "var(--text-placeholder)", flexShrink: 0 }}>▼</span>
+                    <span>{fornecedorFilter.length > 0 ? `${fornecedorFilter.length} fornecedor(es)` : "Fornecedor"}</span>
                   </button>
                   {showFornecedorPopup && (
                     <div onClick={() => setShowFornecedorPopup(false)} style={{ position: "fixed", inset: 0, zIndex: 2000 }}>
-                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: 5, left: "50%", transform: "translateX(-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
                         <h3 style={{ color: "var(--primary)", fontSize: 16, fontWeight: 700, marginBottom: 16, textTransform: "uppercase", letterSpacing: 1 }}>Filtrar por Fornecedor</h3>
                         <button type="button" onClick={() => { setFornecedorFilter([]); }} style={{ display: "block", width: "100%", padding: "10px 14px", textAlign: "left", background: fornecedorFilter.length === 0 ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: fornecedorFilter.length === 0 ? 700 : 400, marginBottom: 4 }}>
                           📋 Todos os fornecedores
@@ -811,19 +778,18 @@ export default function MapaServicoForm({
                     </div>
                   )}
                 </div>
-                <div className="search-container" style={{ flex: "0 0 150px" }}>
+                <div className="search-container" style={{ flex: "0 0 auto", width: "auto" }}>
                   <button
                     type="button"
                     onClick={() => setShowDatePopup(true)}
-                    className="search-input"
-                    style={{ textAlign: "left", cursor: "pointer", height: 44, display: "flex", alignItems: "center", justifyContent: "space-between" }}
+                    className="filter-btn"
+                    style={{ width: "auto", gap: 8, padding: "0 14px", color: "#FFF", fontSize: "13px", fontWeight: "600" }}
                   >
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{dataFilter.length > 0 ? `${dataFilter.length} data(s)` : "Data"}</span>
-                    <span style={{ fontSize: 10, color: "var(--text-placeholder)", flexShrink: 0 }}>▼</span>
+                    <span>{dataFilter.length > 0 ? `${dataFilter.length} data(s)` : "Data"}</span>
                   </button>
                   {showDatePopup && (
                     <div onClick={() => setShowDatePopup(false)} style={{ position: "fixed", inset: 0, zIndex: 2000 }}>
-                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: 5, left: "50%", transform: "translateX(-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
                         <h3 style={{ color: "var(--primary)", fontSize: 16, fontWeight: 700, marginBottom: 16, textTransform: "uppercase", letterSpacing: 1 }}>Filtrar por Data</h3>
                         <button type="button" onClick={() => { setDataFilter([]); }} style={{ display: "block", width: "100%", padding: "10px 14px", textAlign: "left", background: dataFilter.length === 0 ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: dataFilter.length === 0 ? 700 : 400, marginBottom: 4 }}>
                           📋 Todas as datas
@@ -849,19 +815,18 @@ export default function MapaServicoForm({
                     </div>
                   )}
                 </div>
-                <div className="search-container" style={{ flex: "0 0 150px" }}>
+                <div className="search-container" style={{ flex: "0 0 auto", width: "auto" }}>
                   <button
                     type="button"
                     onClick={() => setShowFileEventoPopup(true)}
-                    className="search-input"
-                    style={{ textAlign: "left", cursor: "pointer", height: 44, display: "flex", alignItems: "center", justifyContent: "space-between" }}
+                    className="filter-btn"
+                    style={{ width: "auto", gap: 8, padding: "0 14px", color: "#FFF", fontSize: "13px", fontWeight: "600" }}
                   >
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{fileEventoFilter.length > 0 ? `${fileEventoFilter.length} file(s)` : "File/Evento"}</span>
-                    <span style={{ fontSize: 10, color: "var(--text-placeholder)", flexShrink: 0 }}>▼</span>
+                    <span>{fileEventoFilter.length > 0 ? `${fileEventoFilter.length} file(s)` : "File/Evento"}</span>
                   </button>
                   {showFileEventoPopup && (
                     <div onClick={() => setShowFileEventoPopup(false)} style={{ position: "fixed", inset: 0, zIndex: 2000 }}>
-                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: 5, left: "50%", transform: "translateX(-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
                         <h3 style={{ color: "var(--primary)", fontSize: 16, fontWeight: 700, marginBottom: 16, textTransform: "uppercase", letterSpacing: 1 }}>Filtrar por File/Evento</h3>
                         <button type="button" onClick={() => { setFileEventoFilter([]); }} style={{ display: "block", width: "100%", padding: "10px 14px", textAlign: "left", background: fileEventoFilter.length === 0 ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: fileEventoFilter.length === 0 ? 700 : 400, marginBottom: 4 }}>
                           📋 Todos os files/eventos
@@ -887,19 +852,18 @@ export default function MapaServicoForm({
                     </div>
                   )}
                 </div>
-                <div className="search-container" style={{ flex: "0 0 150px" }}>
+                <div className="search-container" style={{ flex: "0 0 auto", width: "auto" }}>
                   <button
                     type="button"
                     onClick={() => setShowMotoristaPopup(true)}
-                    className="search-input"
-                    style={{ textAlign: "left", cursor: "pointer", height: 44, display: "flex", alignItems: "center", justifyContent: "space-between" }}
+                    className="filter-btn"
+                    style={{ width: "auto", gap: 8, padding: "0 14px", color: "#FFF", fontSize: "13px", fontWeight: "600" }}
                   >
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{motoristaFilter.length > 0 ? `${motoristaFilter.length} motorista(s)` : "Motorista"}</span>
-                    <span style={{ fontSize: 10, color: "var(--text-placeholder)", flexShrink: 0 }}>▼</span>
+                    <span>{motoristaFilter.length > 0 ? `${motoristaFilter.length} motorista(s)` : "Motorista"}</span>
                   </button>
                   {showMotoristaPopup && (
                     <div onClick={() => setShowMotoristaPopup(false)} style={{ position: "fixed", inset: 0, zIndex: 2000 }}>
-                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
+                      <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: 5, left: "50%", transform: "translateX(-50%)", background: "var(--bg-secondary)", border: "1px solid var(--border-color)", borderRadius: 16, padding: 24, minWidth: 300, maxHeight: "70vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}>
                         <h3 style={{ color: "var(--primary)", fontSize: 16, fontWeight: 700, marginBottom: 16, textTransform: "uppercase", letterSpacing: 1 }}>Filtrar por Motorista</h3>
                         <button type="button" onClick={() => { setMotoristaFilter([]); }} style={{ display: "block", width: "100%", padding: "10px 14px", textAlign: "left", background: motoristaFilter.length === 0 ? "rgba(212,175,55,0.15)" : "transparent", border: "none", borderRadius: 8, color: "var(--text-main)", fontSize: 14, cursor: "pointer", fontWeight: motoristaFilter.length === 0 ? 700 : 400, marginBottom: 4 }}>
                           📋 Todos os motoristas
@@ -925,11 +889,17 @@ export default function MapaServicoForm({
                     </div>
                   )}
                 </div>
-                <button type="button" onClick={() => { setFornecedorFilter([]); setFileEventoFilter([]); setMotoristaFilter([]); setDataFilter([]); }} style={{ fontSize: 12, padding: "0 14px", height: 44, background: "var(--bg-input)", border: "1px solid var(--border-color)", borderRadius: 20, cursor: "pointer", color: "var(--text-main)", whiteSpace: "nowrap", flexShrink: 0 }}>
-                  Limpar Filtro
+                <button type="button" onClick={() => { setFornecedorFilter([]); setFileEventoFilter([]); setMotoristaFilter([]); setDataFilter([]); }} className="filter-btn" style={{ width: "auto", gap: 8, padding: "0 14px", color: "#ff6b6b", background: "rgba(255,107,107,0.12)", border: "1px solid rgba(255,107,107,0.3)", fontSize: "13px", fontWeight: "600" }}>
+                  <span>Limpar</span>
                 </button>
+                <div className="scroll-hint" style={{ marginLeft: "auto", display: hasHorizontalScroll ? "flex" : "none", alignItems: "center", gap: 8 }}>
+                  <span className="scroll-hint-text">← segure e arraste →</span>
+                  <span className="scroll-hint-track">
+                    <span className="scroll-hint-thumb"></span>
+                  </span>
+                </div>
               </div>
-              <div className="table-responsive spreadsheet-container">
+              <div className="table-responsive spreadsheet-container" ref={tableRef} style={{ cursor: "grab" }}>
                 <table className="spreadsheet-table">
                   <thead>
                     <tr>

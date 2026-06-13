@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
+import { User, Users, Wrench, Car, ClipboardList, FlaskConical, Map, UserCheck } from "lucide-react";
 import InvoiceForm from "./components/InvoiceForm";
 import InvoicePreview from "./components/InvoicePreview";
 import ServiceOrderForm from "./components/ServiceOrderForm";
-import ServiceOrderPreview from "./components/ServiceOrderPreview";
+
 import MapaServicoForm from "./components/MapaServicoForm";
 import MapaServicoPreview from "./components/MapaServicoPreview";
 import MapasHistoryModal from "./components/MapasHistoryModal";
@@ -23,20 +24,24 @@ import OrcamentoHistoryModal from "./components/OrcamentoHistoryModal";
 import { generateQrCode, downloadInvoicePDF } from "./utils/invoice";
 import { isLoggedIn, logoutUser, getCurrentUser, isAdmin, fetchMe } from "./utils/auth";
 import { api } from "./utils/api";
+import { formatDateBR } from "./utils/formatters";
+import { useOrcamentoCalculations } from "./hooks/useOrcamentoCalculations";
+
+function escapeHTML(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/ /g, "&nbsp;")
+    .replace(/\n/g, "<br/>");
+}
 
 const getToday = () => {
   const d = new Date();
   return d.toISOString().split('T')[0];
-};
-
-const getNextInvoiceNumber = (history) => {
-  if (!history || history.length === 0) return "1";
-  const numbers = history.map(item => {
-    const parts = item.numero.split("/");
-    return parseInt(parts[0]) || 0;
-  });
-  const maxNumber = Math.max(...numbers, 0);
-  return (maxNumber + 1).toString();
 };
 
 const INITIAL_DATA_TEMPLATE = {
@@ -95,12 +100,6 @@ function AuthenticatedApp({ onLogout }) {
     pagamento: {},
     tema: "white"
   }));
-  const [osData, setOsData] = useState(() => ({
-    ...INITIAL_OS_TEMPLATE,
-    empresa: {},
-    pagamento: {},
-    tema: "white"
-  }));
   const [orcamentoData, setOrcamentoData] = useState(() => ({
     ...INITIAL_ORCAMENTO_TEMPLATE,
     empresa: {},
@@ -108,6 +107,12 @@ function AuthenticatedApp({ onLogout }) {
     tema: "white"
   }));
   const [loading, setLoading] = useState(true);
+
+  const { total: orcamentoTotal, descontoCalculado: orcamentoDesconto, impostoCalculado: orcamentoImposto, finalTotal: orcamentoFinalTotal } = useOrcamentoCalculations(
+    orcamentoData.itens,
+    orcamentoData.desconto,
+    orcamentoData.imposto
+  );
 
   const [showAdmin, setShowAdmin] = useState(false);
   const [showAccountSettings, setShowAccountSettings] = useState(false);
@@ -146,13 +151,7 @@ function AuthenticatedApp({ onLogout }) {
     responsavelNome: false, responsavelTelefone: false,
     dataEmissao: false, dataVencimento: false, itens: false, faturaNumero: false,
   });
-  const [osFieldErrors, setOsFieldErrors] = useState({
-    numero: false, data: false, hora: false, voo: false, servico: false,
-    nomeGuia: false, nomePax: false, pax: false, fileEvento: false,
-    clienteNome: false, observacao: false, veiculo: false, placa: false, motorista: false,
-  });
   const [scrollToError, setScrollToError] = useState(0);
-  const [osScrollToError, setOsScrollToError] = useState(0);
   const [orcamentoFieldErrors, setOrcamentoFieldErrors] = useState({
     clienteNome: false, clienteDocumento: false, clienteEmail: false, clienteEndereco: false,
     responsavelNome: false, responsavelTelefone: false,
@@ -186,12 +185,6 @@ function AuthenticatedApp({ onLogout }) {
         setOrcamentoHistory(orcs);
         setSavedSettings(settings);
         setData(prev => ({
-          ...prev,
-          empresa: settings.empresa || {},
-          pagamento: settings.pagamento || {},
-          tema: settings.tema || "white"
-        }));
-        setOsData(prev => ({
           ...prev,
           empresa: settings.empresa || {},
           pagamento: settings.pagamento || {},
@@ -305,12 +298,6 @@ function AuthenticatedApp({ onLogout }) {
         pagamento: newSettings.pagamento || {},
         tema: newSettings.tema || "white"
       }));
-      setOsData(prev => ({
-        ...prev,
-        empresa: newSettings.empresa || {},
-        pagamento: newSettings.pagamento || {},
-        tema: newSettings.tema || "white"
-      }));
       setOrcamentoData(prev => ({
         ...prev,
         empresa: newSettings.empresa || {},
@@ -397,6 +384,9 @@ function AuthenticatedApp({ onLogout }) {
       return;
     }
     setIsLocked(true);
+    const currentFaturaData = data.fatura.data || getToday();
+    const currentClientName = data.cliente.nome || "Não informado";
+    const snapshotData = { ...data };
     setData(prev => ({
       ...prev,
       fatura: { ...prev.fatura, numero: paddedNumber }
@@ -405,10 +395,10 @@ function AuthenticatedApp({ onLogout }) {
       downloadInvoicePDF("fatura", filename);
       const historyItem = {
         numero: paddedNumber,
-        dataEmissao: data.fatura.data || getToday(),
-        cliente: data.cliente.nome || "Não informado",
+        dataEmissao: currentFaturaData,
+        cliente: currentClientName,
         valor: finalTotal,
-        fullData: { ...data, fatura: { ...data.fatura, numero: paddedNumber } }
+        fullData: { ...snapshotData, fatura: { ...snapshotData.fatura, numero: paddedNumber } }
       };
       api.post("/api/history", historyItem).then(saved => {
         setHistory(prev => [saved, ...prev]);
@@ -471,13 +461,6 @@ function AuthenticatedApp({ onLogout }) {
   };
 
   // ---- OS LOGIC ----
-  const osUpdate = (secao, campo, valor) => {
-    setOsData((prev) => {
-      if (!secao) return { ...prev, [campo]: valor };
-      return { ...prev, [secao]: { ...prev[secao], [campo]: valor } };
-    });
-  };
-
   const handleOSSubmit = (filteredEntries, isManual = false) => {
     if (!filteredEntries || filteredEntries.length === 0) return;
     setOsPreviewEntries(filteredEntries);
@@ -555,10 +538,6 @@ function AuthenticatedApp({ onLogout }) {
     setShowOSHistory(false);
   };
 
-  const clearOSFieldError = (field) => {
-    setOsFieldErrors(prev => ({ ...prev, [field]: false }));
-  };
-
   const handleNewOS = () => {
     const entries = osPreviewSource ? [...osPreviewEntries] : [];
     setOsPreviewEntries([]);
@@ -579,20 +558,14 @@ function AuthenticatedApp({ onLogout }) {
   };
 
   const handleDownloadSingleOS = (entry) => {
-    const formatDateBR = (val) => {
-      if (!val) return "";
-      const parts = val.split("-");
-      if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-      return val;
-    };
-    const fornecedor = entry.fornecedor || "";
+    const fornecedor = escapeHTML(entry.fornecedor || "");
     const empresa = data.empresa || {};
     const html = `
       <div class="os-paper landscape" style="width:1123px;margin:0;padding:0;font-family:Arial,sans-serif;">
         <div class="os-header">
           <div class="os-brand">
             ${empresa.logo ? `<img src="${empresa.logo}" class="os-logo" alt="Logo" />` : ""}
-            <span class="os-company">${empresa.nome || "SUA EMPRESA"} - Ordem de Serviço - ${fornecedor}</span>
+            <span class="os-company">${escapeHTML(empresa.nome || "SUA EMPRESA")} - Ordem de Serviço - ${fornecedor}</span>
           </div>
         </div>
         <table class="os-table">
@@ -602,19 +575,19 @@ function AuthenticatedApp({ onLogout }) {
             <th>OBSERVAÇÃO</th><th>VEÍCULO</th><th>PLACA</th><th>MOTORISTA/CONTATO</th>
           </tr></thead>
           <tbody><tr class="os-data-row">
-            <td class="os-num">${entry.numero || "---"}</td>
-            <td>${formatDateBR(entry.data)}</td>
-            <td>${entry.hora || "---"}</td>
-            <td>${entry.voo || "---"}</td>
-            <td class="os-wide-cell" style="white-space:pre-wrap">${entry.servico || "---"}</td>
-            <td style="white-space:nowrap">${entry.nome_guia || ""}${entry.tel_guia ? `<br/>${entry.tel_guia}` : ""}</td>
-            <td>${entry.nome_pax || "---"}</td>
-            <td class="os-pax">${entry.pax || "0"}</td>
-            <td>${entry.cliente?.nome || "---"}</td>
-            <td class="os-wide-cell os-obs-cell">${entry.observacao || "---"}</td>
-            <td>${entry.veiculo || "---"}</td>
-            <td>${entry.placa || "---"}</td>
-            <td style="white-space:nowrap">${entry.motorista || ""}${entry.contato_motorista ? `<br/>${entry.contato_motorista}` : ""}</td>
+            <td class="os-num">${escapeHTML(entry.numero) || "---"}</td>
+            <td>${escapeHTML(formatDateBR(entry.data))}</td>
+            <td>${escapeHTML(entry.hora) || "---"}</td>
+            <td>${escapeHTML(entry.voo) || "---"}</td>
+            <td class="os-wide-cell" style="white-space:pre-wrap">${escapeHTML(entry.servico) || "---"}</td>
+            <td style="white-space:nowrap">${escapeHTML(entry.nome_guia) || ""}${entry.tel_guia ? `<br/>${escapeHTML(entry.tel_guia)}` : ""}</td>
+            <td>${escapeHTML(entry.nome_pax) || "---"}</td>
+            <td class="os-pax">${escapeHTML(entry.pax) || "0"}</td>
+            <td>${escapeHTML(entry.cliente?.nome) || "---"}</td>
+            <td class="os-wide-cell os-obs-cell">${escapeHTML(entry.observacao) || "---"}</td>
+            <td>${escapeHTML(entry.veiculo) || "---"}</td>
+            <td>${escapeHTML(entry.placa) || "---"}</td>
+            <td style="white-space:nowrap">${escapeHTML(entry.motorista) || ""}${entry.contato_motorista ? `<br/>${escapeHTML(entry.contato_motorista)}` : ""}</td>
           </tr></tbody>
         </table>
         <div class="os-footer"><p class="os-thanks">Obrigado pela preferência!</p></div>
@@ -635,12 +608,6 @@ function AuthenticatedApp({ onLogout }) {
   };
 
   const handleBulkDownloadOS = async (selectedEntries) => {
-    const formatDateBR = (val) => {
-      if (!val) return "";
-      const parts = val.split("-");
-      if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-      return val;
-    };
     const empresa = data.empresa || {};
     const grouped = {};
     selectedEntries.forEach(entry => {
@@ -661,19 +628,19 @@ function AuthenticatedApp({ onLogout }) {
         });
         const rowsHtml = entries.map(entry => `
           <tr class="os-data-row">
-            <td class="os-num">${entry.numero || "---"}</td>
-            <td>${formatDateBR(entry.data)}</td>
-            <td>${entry.hora || "---"}</td>
-            <td>${entry.voo || "---"}</td>
-            <td class="os-wide-cell" style="white-space:pre-wrap">${entry.servico || "---"}</td>
-            <td style="white-space:nowrap">${entry.nome_guia || ""}${entry.tel_guia ? `<br/>${entry.tel_guia}` : ""}</td>
-            <td>${entry.nome_pax || "---"}</td>
-            <td class="os-pax">${entry.pax || "0"}</td>
-            <td>${entry.cliente?.nome || "---"}</td>
-            <td class="os-wide-cell os-obs-cell">${entry.observacao || "---"}</td>
-            <td>${entry.veiculo || "---"}</td>
-            <td>${entry.placa || "---"}</td>
-            <td style="white-space:nowrap">${entry.motorista || ""}${entry.contato_motorista ? `<br/>${entry.contato_motorista}` : ""}</td>
+            <td class="os-num">${escapeHTML(entry.numero) || "---"}</td>
+            <td>${escapeHTML(formatDateBR(entry.data))}</td>
+            <td>${escapeHTML(entry.hora) || "---"}</td>
+            <td>${escapeHTML(entry.voo) || "---"}</td>
+            <td class="os-wide-cell" style="white-space:pre-wrap">${escapeHTML(entry.servico) || "---"}</td>
+            <td style="white-space:nowrap">${escapeHTML(entry.nome_guia) || ""}${entry.tel_guia ? `<br/>${escapeHTML(entry.tel_guia)}` : ""}</td>
+            <td>${escapeHTML(entry.nome_pax) || "---"}</td>
+            <td class="os-pax">${escapeHTML(entry.pax) || "0"}</td>
+            <td>${escapeHTML(entry.cliente?.nome) || "---"}</td>
+            <td class="os-wide-cell os-obs-cell">${escapeHTML(entry.observacao) || "---"}</td>
+            <td>${escapeHTML(entry.veiculo) || "---"}</td>
+            <td>${escapeHTML(entry.placa) || "---"}</td>
+            <td style="white-space:nowrap">${escapeHTML(entry.motorista) || ""}${entry.contato_motorista ? `<br/>${escapeHTML(entry.contato_motorista)}` : ""}</td>
           </tr>
         `).join("");
         const html = `
@@ -681,7 +648,7 @@ function AuthenticatedApp({ onLogout }) {
             <div class="os-header">
               <div class="os-brand">
                 ${empresa.logo ? `<img src="${empresa.logo}" class="os-logo" alt="Logo" />` : ""}
-                <span class="os-company">${empresa.nome || "SUA EMPRESA"} - Ordem de Serviço - ${fornecedor}</span>
+                <span class="os-company">${escapeHTML(empresa.nome || "SUA EMPRESA")} - Ordem de Serviço - ${escapeHTML(fornecedor)}</span>
               </div>
             </div>
             <table class="os-table">
@@ -842,25 +809,23 @@ function AuthenticatedApp({ onLogout }) {
       return;
     }
     setOrcamentoIsLocked(true);
+    const currentOrcData = orcamentoData.orcamento.data || getToday();
+    const currentOrcValidade = orcamentoData.orcamento.validade || "30";
+    const currentOrcClient = orcamentoData.cliente.nome || "Não informado";
+    const snapshotOrcData = { ...orcamentoData };
     setOrcamentoData(prev => ({
       ...prev,
       orcamento: { ...prev.orcamento, numero: paddedNumber }
     }));
     setTimeout(() => {
       downloadInvoicePDF("orcamento", filename);
-      const total = orcamentoData.itens.reduce((acc, item) => acc + (parseFloat(item.valor) || 0) * (parseFloat(item.quantidade) || 0), 0);
-      const descRaw = parseInt((orcamentoData.desconto?.valor || "").replace(/\D/g, ""), 10) || 0;
-      const desc = orcamentoData.desconto?.tipo === "porcentagem" ? total * (descRaw / 10000) : descRaw / 100;
-      const impRaw = parseInt((orcamentoData.imposto?.valor || "").replace(/\D/g, ""), 10) || 0;
-      const imp = orcamentoData.imposto?.tipo === "porcentagem" ? total * (impRaw / 10000) : impRaw / 100;
-      const finalVal = total - desc + imp;
       const historyItem = {
         numero: paddedNumber,
-        dataEmissao: orcamentoData.orcamento.data || getToday(),
-        validade: orcamentoData.orcamento.validade || "30",
-        cliente: orcamentoData.cliente.nome || "Não informado",
-        valor: finalVal,
-        fullData: { ...orcamentoData, orcamento: { ...orcamentoData.orcamento, numero: paddedNumber } }
+        dataEmissao: currentOrcData,
+        validade: currentOrcValidade,
+        cliente: currentOrcClient,
+        valor: orcamentoFinalTotal,
+        fullData: { ...snapshotOrcData, orcamento: { ...snapshotOrcData.orcamento, numero: paddedNumber } }
       };
       api.post("/api/orcamentos", historyItem).then(saved => {
         setOrcamentoHistory(prev => [saved, ...prev]);
@@ -926,39 +891,10 @@ function AuthenticatedApp({ onLogout }) {
   return (
     <div className="app-container">
       <header className="main-header no-print">
+        <div className="header-left"></div>
         <div className="header-content">
           <h1 className="logo">{data.empresa.nome || "LOG GOLD"}</h1>
           <p className="slogan">Sempre buscando a perfeição</p>
-          <div className="tab-bar">
-            <button
-              className={`tab-btn ${activeTab === "mapa" ? "active" : ""}`}
-              onClick={() => switchTab("mapa")}
-              disabled={preview || osPreview || mapaPreview || orcamentoPreview}
-            >
-              🗺️ Mapa de Serviço
-            </button>
-            <button
-              className={`tab-btn ${activeTab === "ordem-servico" ? "active" : ""}`}
-              onClick={() => switchTab("ordem-servico")}
-              disabled={preview || osPreview || mapaPreview || orcamentoPreview}
-            >
-              🛠️ Ordem de Serviço
-            </button>
-            <button
-              className={`tab-btn ${activeTab === "fatura" ? "active" : ""}`}
-              onClick={() => switchTab("fatura")}
-              disabled={preview || osPreview || mapaPreview || orcamentoPreview}
-            >
-              📄 Fatura
-            </button>
-            <button
-              className={`tab-btn ${activeTab === "orcamento" ? "active" : ""}`}
-              onClick={() => switchTab("orcamento")}
-              disabled={preview || osPreview || mapaPreview || orcamentoPreview}
-            >
-              💰 Orçamento
-            </button>
-          </div>
         </div>
         <div className="header-actions">
           {user && <span className="user-badge">@{user.displayName || user.username}</span>}
@@ -975,49 +911,65 @@ function AuthenticatedApp({ onLogout }) {
           </button>
         </div>
       </header>
+      <nav className="navbar no-print">
+        <div className="tab-bar">
+          <button className={`tab-btn ${activeTab === "mapa" ? "active" : ""}`} onClick={() => switchTab("mapa")} disabled={preview || osPreview || mapaPreview || orcamentoPreview}>
+            Mapa de Serviço
+          </button>
+          <button className={`tab-btn ${activeTab === "ordem-servico" ? "active" : ""}`} onClick={() => switchTab("ordem-servico")} disabled={preview || osPreview || mapaPreview || orcamentoPreview}>
+            Ordem de Serviço
+          </button>
+          <button className={`tab-btn ${activeTab === "fatura" ? "active" : ""}`} onClick={() => switchTab("fatura")} disabled={preview || osPreview || mapaPreview || orcamentoPreview}>
+            Fatura
+          </button>
+          <button className={`tab-btn ${activeTab === "orcamento" ? "active" : ""}`} onClick={() => switchTab("orcamento")} disabled={preview || osPreview || mapaPreview || orcamentoPreview}>
+            Orçamento
+          </button>
+        </div>
+      </nav>
 
       <main className="main-content">
         {/* Action buttons - shared */}
         {!preview && !osPreview && !mapaPreview && !orcamentoPreview && (
           <div className="action-buttons-container no-print">
             <button onClick={() => setShowSettings(true)} className="action-button settings-toggle" title="Meus Dados">
-              <span className="icon">👤</span><span className="label">Meus dados</span>
+              <span className="icon"><User size={20} /></span><span className="label">Meus dados</span>
             </button>
             <button onClick={() => setShowClients(true)} className="action-button clients-toggle" title="Gerenciar Clientes">
-              <span className="icon">👥</span><span className="label">Clientes</span>
+              <span className="icon"><Users size={20} /></span><span className="label">Clientes</span>
             </button>
             <button onClick={() => setShowServices(true)} className="action-button services-toggle" title="Gerenciar Serviços">
-              <span className="icon">🛠️</span><span className="label">Serviços</span>
+              <span className="icon"><Wrench size={20} /></span><span className="label">Serviços</span>
             </button>
             <button onClick={() => setShowVehicles(true)} className="action-button services-toggle" title="Gerenciar Veículos">
-              <span className="icon">🚗</span><span className="label">Veículos</span>
+              <span className="icon"><Car size={20} /></span><span className="label">Veículos</span>
             </button>
             <button onClick={() => setShowDrivers(true)} className="action-button services-toggle" title="Gerenciar Motoristas">
-              <span className="icon">👤</span><span className="label">Motoristas</span>
+              <span className="icon"><UserCheck size={20} /></span><span className="label">Motoristas</span>
             </button>
             {activeTab === "fatura" && (
               <button onClick={() => setShowHistory(true)} className="action-button history-toggle" title="Histórico de Faturas">
-                <span className="icon">📋</span><span className="label">Histórico de Faturas</span>
+                <span className="icon"><ClipboardList size={20} /></span><span className="label">Histórico de Faturas</span>
               </button>
             )}
             {activeTab === "ordem-servico" && (
               <>
                 <button onClick={() => setShowOSHistory(true)} className="action-button history-toggle" title="Histórico de Ordem">
-                  <span className="icon">📋</span><span className="label">Histórico de Ordem</span>
+                  <span className="icon"><ClipboardList size={20} /></span><span className="label">Histórico de Ordem</span>
                 </button>
                 <button onClick={() => setShowSimulacaoOS(true)} className="action-button history-toggle" title="Simulação de Ordem">
-                  <span className="icon">🧪</span><span className="label">Simulação de Ordem</span>
+                  <span className="icon"><FlaskConical size={20} /></span><span className="label">Simulação de Ordem</span>
                 </button>
               </>
             )}
             {activeTab === "mapa" && (
               <button onClick={() => setShowMapaHistory(true)} className="action-button history-toggle" title="Histórico de Mapas">
-                <span className="icon">🗺️</span><span className="label">Histórico de Mapas</span>
+                <span className="icon"><Map size={20} /></span><span className="label">Histórico de Mapas</span>
               </button>
             )}
             {activeTab === "orcamento" && (
               <button onClick={() => setShowOrcamentoHistory(true)} className="action-button history-toggle" title="Histórico de Orçamentos">
-                <span className="icon">📋</span><span className="label">Histórico de Orçamentos</span>
+                <span className="icon"><ClipboardList size={20} /></span><span className="label">Histórico de Orçamentos</span>
               </button>
             )}
           </div>
@@ -1202,25 +1154,10 @@ function AuthenticatedApp({ onLogout }) {
         {activeTab === "orcamento" && orcamentoPreview ? (
           <OrcamentoPreview
             data={orcamentoData}
-            total={orcamentoData.itens.reduce((acc, item) => acc + (parseFloat(item.valor) || 0) * (parseFloat(item.quantidade) || 0), 0)}
-            descontoCalculado={(() => {
-              const t = orcamentoData.itens.reduce((acc, item) => acc + (parseFloat(item.valor) || 0) * (parseFloat(item.quantidade) || 0), 0);
-              const raw = parseInt((orcamentoData.desconto.valor || "").replace(/\D/g, ""), 10) || 0;
-              return orcamentoData.desconto.tipo === "porcentagem" ? t * (raw / 10000) : raw / 100;
-            })()}
-            impostoCalculado={(() => {
-              const t = orcamentoData.itens.reduce((acc, item) => acc + (parseFloat(item.valor) || 0) * (parseFloat(item.quantidade) || 0), 0);
-              const raw = parseInt((orcamentoData.imposto.valor || "").replace(/\D/g, ""), 10) || 0;
-              return orcamentoData.imposto.tipo === "porcentagem" ? t * (raw / 10000) : raw / 100;
-            })()}
-            finalTotal={(() => {
-              const t = orcamentoData.itens.reduce((acc, item) => acc + (parseFloat(item.valor) || 0) * (parseFloat(item.quantidade) || 0), 0);
-              const dr = parseInt((orcamentoData.desconto.valor || "").replace(/\D/g, ""), 10) || 0;
-              const d = orcamentoData.desconto.tipo === "porcentagem" ? t * (dr / 10000) : dr / 100;
-              const ir = parseInt((orcamentoData.imposto.valor || "").replace(/\D/g, ""), 10) || 0;
-              const i = orcamentoData.imposto.tipo === "porcentagem" ? t * (ir / 10000) : ir / 100;
-              return t - d + i;
-            })()}
+            total={orcamentoTotal}
+            descontoCalculado={orcamentoDesconto}
+            impostoCalculado={orcamentoImposto}
+            finalTotal={orcamentoFinalTotal}
             isLocked={orcamentoIsLocked}
             onBack={orcamentoIsLocked ? handleNewOrcamento : () => setOrcamentoPreview(false)}
             onDownload={handleOrcamentoDownload}
@@ -1230,25 +1167,10 @@ function AuthenticatedApp({ onLogout }) {
           <OrcamentoForm
             data={orcamentoData}
             clients={clients}
-            total={orcamentoData.itens.reduce((acc, item) => acc + (parseFloat(item.valor) || 0) * (parseFloat(item.quantidade) || 0), 0)}
-            descontoCalculado={(() => {
-              const t = orcamentoData.itens.reduce((acc, item) => acc + (parseFloat(item.valor) || 0) * (parseFloat(item.quantidade) || 0), 0);
-              const raw = parseInt((orcamentoData.desconto.valor || "").replace(/\D/g, ""), 10) || 0;
-              return orcamentoData.desconto.tipo === "porcentagem" ? t * (raw / 10000) : raw / 100;
-            })()}
-            impostoCalculado={(() => {
-              const t = orcamentoData.itens.reduce((acc, item) => acc + (parseFloat(item.valor) || 0) * (parseFloat(item.quantidade) || 0), 0);
-              const raw = parseInt((orcamentoData.imposto.valor || "").replace(/\D/g, ""), 10) || 0;
-              return orcamentoData.imposto.tipo === "porcentagem" ? t * (raw / 10000) : raw / 100;
-            })()}
-            finalTotal={(() => {
-              const t = orcamentoData.itens.reduce((acc, item) => acc + (parseFloat(item.valor) || 0) * (parseFloat(item.quantidade) || 0), 0);
-              const dr = parseInt((orcamentoData.desconto.valor || "").replace(/\D/g, ""), 10) || 0;
-              const d = orcamentoData.desconto.tipo === "porcentagem" ? t * (dr / 10000) : dr / 100;
-              const ir = parseInt((orcamentoData.imposto.valor || "").replace(/\D/g, ""), 10) || 0;
-              const i = orcamentoData.imposto.tipo === "porcentagem" ? t * (ir / 10000) : ir / 100;
-              return t - d + i;
-            })()}
+            total={orcamentoTotal}
+            descontoCalculado={orcamentoDesconto}
+            impostoCalculado={orcamentoImposto}
+            finalTotal={orcamentoFinalTotal}
             update={orcamentoUpdate}
             updateItem={orcamentoUpdateItem}
             addItem={orcamentoAddItem}
