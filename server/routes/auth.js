@@ -207,7 +207,12 @@ router.put("/me", authMiddleware, async (req, res) => {
 
 router.get("/users", authMiddleware, adminMiddleware, async (req, res) => {
   const { rows } = await pool.query("SELECT username, display_name, role FROM users ORDER BY username");
-  res.json(rows.map(u => ({ username: u.username, displayName: u.display_name, role: u.role })));
+  const admin = rows.find(u => u.role === "admin");
+  const users = rows.filter(u => u.role !== "admin").map(u => ({ username: u.username, displayName: u.display_name, role: u.role }));
+  res.json({
+    admin: admin ? { username: admin.username, displayName: admin.display_name, role: admin.role } : null,
+    users
+  });
 });
 
 router.delete("/users/:username", authMiddleware, adminMiddleware, async (req, res) => {

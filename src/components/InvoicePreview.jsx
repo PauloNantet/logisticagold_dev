@@ -126,7 +126,7 @@ export default function InvoicePreview({ data, qrCode, total, descontoCalculado,
               <p>{data.empresa.email}</p>
             </div>
             <div className="document-info">
-              <p><span className="info-label">Número:</span> <span className="info-value">{formatInvoiceNumber(data.fatura.numero, data.fatura.data)}</span></p>
+              <p><span className="info-label">Número:</span> <span className="info-value">{formatInvoiceNumber(data.fatura.numero)}</span></p>
               <p><span className="info-label">Emissão:</span> {formatDateBR(data.fatura.data)}</p>
               <p className="due-date"><span className="info-label">Vencimento:</span> {formatDateBR(data.fatura.vencimento)}</p>
             </div>
@@ -161,9 +161,9 @@ export default function InvoicePreview({ data, qrCode, total, descontoCalculado,
               <tr>
                 <th>Item / Serviço</th>
                 <th>Descrição</th>
-                <th className="text-right">Valor</th>
+                <th className="text-center">Valor</th>
                 <th className="text-center">Qtd</th>
-                <th className="text-right">Total</th>
+                <th className="text-center">Total</th>
               </tr>
             </thead>
             <tbody>
@@ -171,11 +171,11 @@ export default function InvoicePreview({ data, qrCode, total, descontoCalculado,
                 <tr key={i}>
                   <td className="item-name">{item.produto || "---"}</td>
                   <td className="item-desc">{item.descricao}</td>
-                  <td className="text-right">
+                  <td className="text-center">
                     {Number(item.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   </td>
                   <td className="text-center">{item.quantidade}</td>
-                  <td className="text-right font-bold">
+                  <td className="text-center font-bold">
                     {(Number(item.valor) * Number(item.quantidade)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   </td>
                 </tr>

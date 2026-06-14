@@ -4,6 +4,7 @@ import { api } from "../utils/api";
 import ConfirmDialog from "./ConfirmDialog";
 
 export default function AdminPanel({ onClose }) {
+  const [admin, setAdmin] = useState(null);
   const [users, setUsers] = useState([]);
   const [newUsername, setNewUsername] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -18,7 +19,15 @@ export default function AdminPanel({ onClose }) {
 
   const loadUsers = async () => {
     if (isAdmin()) {
-      setUsers(await getAllUsers());
+      const data = await getAllUsers();
+      if (Array.isArray(data)) {
+        const found = data.find(u => u.role === "admin");
+        setAdmin(found || null);
+        setUsers(data.filter(u => u.role !== "admin"));
+      } else {
+        setAdmin(data.admin);
+        setUsers(data.users || []);
+      }
     }
   };
 
@@ -134,7 +143,22 @@ export default function AdminPanel({ onClose }) {
           {success && <div className="admin-success">{success}</div>}
 
           <div className="admin-section">
-            <h3>Usuários Cadastrados</h3>
+            <h3>Administrador</h3>
+            {admin && (
+              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", background: "var(--bg-tertiary)", borderRadius: "var(--radius-md)", marginBottom: 16 }}>
+                <div style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16, color: "#000" }}>
+                  {admin.displayName?.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 600 }}>{admin.displayName}</div>
+                  <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>@{admin.username} · Administrador</div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="admin-section">
+            <h3>Usuários</h3>
             {users.length === 0 ? (
               <div className="empty-clients">Nenhum usuário cadastrado.</div>
             ) : (
@@ -144,42 +168,36 @@ export default function AdminPanel({ onClose }) {
                     <tr>
                       <th>Nome</th>
                       <th>Usuário</th>
-                      <th>Tipo</th>
                       <th style={{ textAlign: 'center' }}>Ações</th>
                     </tr>
                   </thead>
                   <tbody>
                     {users.map(u => (
-                      <tr key={u.username} className={u.role === "admin" ? "admin-table-row" : ""}>
+                      <tr key={u.username}>
                         <td className="font-bold">{u.displayName}</td>
                         <td className="admin-username-cell">@{u.username}</td>
-                        <td>
-                          <span className={`admin-user-role ${u.role}`}>{u.role === "admin" ? "Admin" : "Usuário"}</span>
-                        </td>
                         <td className="actions-cell">
-                          {u.role !== "admin" && (
-                            <div className="spreadsheet-actions justify-end">
-                              {resetUser === u.username ? (
-                                <div className="reset-password-inline">
-                                  <input
-                                    type="password"
-                                    value={resetPassword}
-                                    onChange={(e) => setResetPassword(e.target.value)}
-                                    placeholder="Nova senha (mín. 4)"
-                                    className="custom-input reset-input"
-                                    autoFocus
-                                  />
-                                  <button className="admin-reset-confirm-btn" onClick={() => handleResetPassword(u.username)}>OK</button>
-                                  <button className="admin-reset-cancel-btn" onClick={cancelReset}>X</button>
-                                </div>
-                              ) : (
-                                <>
-                                  <button className="admin-action-btn reset" onClick={() => { setResetUser(u.username); setResetPassword(""); }} title="Redefinir senha">Redefinir Senha</button>
-                                  <button className="admin-action-btn delete" onClick={() => handleDelete(u.username)} title="Excluir usuário">Excluir</button>
-                                </>
-                              )}
-                            </div>
-                          )}
+                          <div className="spreadsheet-actions justify-end">
+                            {resetUser === u.username ? (
+                              <div className="reset-password-inline">
+                                <input
+                                  type="password"
+                                  value={resetPassword}
+                                  onChange={(e) => setResetPassword(e.target.value)}
+                                  placeholder="Nova senha (mín. 4)"
+                                  className="custom-input reset-input"
+                                  autoFocus
+                                />
+                                <button className="admin-reset-confirm-btn" onClick={() => handleResetPassword(u.username)}>OK</button>
+                                <button className="admin-reset-cancel-btn" onClick={cancelReset}>X</button>
+                              </div>
+                            ) : (
+                              <>
+                                <button className="admin-action-btn reset" onClick={() => { setResetUser(u.username); setResetPassword(""); }} title="Redefinir senha">Redefinir Senha</button>
+                                <button className="admin-action-btn delete" onClick={() => handleDelete(u.username)} title="Excluir usuário">Excluir</button>
+                              </>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}

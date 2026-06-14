@@ -185,13 +185,18 @@ export default function SettingsModal({ settings, onSave, onClose }) {
           <div className="pix-config-container" style={{ marginBottom: '12px' }}>
             <label className="input-label">Tipo e Chave PIX Padrão</label>
             <div className="pix-row">
-              <select value={formData.pagamento.tipoPix || "aleatoria"} onChange={(e) => { const tipo = e.target.value; handleChange("pagamento", "tipoPix", tipo); handleChange("pagamento", "pix", ""); }} className="custom-input pix-type-select">
-                <option value="cpf">CPF</option>
-                <option value="cnpj">CNPJ</option>
-                <option value="celular">Celular</option>
-                <option value="email">E-mail</option>
-                <option value="aleatoria">Aleatória</option>
-              </select>
+              <div className="pix-type-select">
+                {["cpf", "cnpj", "celular", "email", "aleatoria"].map(tipo => (
+                  <button
+                    key={tipo}
+                    type="button"
+                    className={`pix-type-btn${(formData.pagamento.tipoPix || "aleatoria") === tipo ? " active" : ""}`}
+                    onClick={() => { handleChange("pagamento", "tipoPix", tipo); handleChange("pagamento", "pix", ""); }}
+                  >
+                    {tipo === "aleatoria" ? "Aleatória" : tipo.toUpperCase()}
+                  </button>
+                ))}
+              </div>
               <input type="text" value={formData.pagamento.pix} onChange={(e) => {
                 let val = e.target.value;
                 const tipo = formData.pagamento.tipoPix || "aleatoria";

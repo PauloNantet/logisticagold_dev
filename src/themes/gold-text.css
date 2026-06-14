@@ -25,11 +25,11 @@ body[data-theme="gold-text"] {
 .invoice-paper.theme-gold-text .summary-rows,
 .invoice-paper.theme-gold-text .total-main-row { border-top: 2px solid #B8860B !important; }
 .invoice-paper.theme-gold-text .total-main-row .total-value { color: #B8860B !important; text-shadow: 0 0 8px rgba(184,134,11,0.4); }
-.invoice-paper.theme-gold-text .invoice-table { border-collapse: collapse; border: 2px solid #999999; }
+.invoice-paper.theme-gold-text .invoice-table { border-collapse: collapse; }
 .invoice-paper.theme-gold-text .invoice-table thead { background-color: #ffffff !important; }
-.invoice-paper.theme-gold-text .invoice-table th { color: #B8860B !important; border: 2px solid #999999; text-shadow: 0 0 8px rgba(184,134,11,0.4); }
+.invoice-paper.theme-gold-text .invoice-table th { color: #B8860B !important; border: 2px solid #999999 !important; text-shadow: 0 0 8px rgba(184,134,11,0.4); }
 .invoice-paper.theme-gold-text .invoice-table tbody { background-color: #ffffff !important; }
-.invoice-paper.theme-gold-text .invoice-table td { border: 2px solid #999999; color: #888888 !important; }
+.invoice-paper.theme-gold-text .invoice-table td { border: 2px solid #999999 !important; color: #888888 !important; }
 .invoice-paper.theme-gold-text .invoice-logo { border-color: #B8860B !important; border-width: 2px; box-shadow: 0 4px 15px rgba(184,134,11,0.3); }
 .invoice-paper.theme-gold-text .client-box,
 .invoice-paper.theme-gold-text .responsible-box,

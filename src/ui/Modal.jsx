@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import Button from "./Button";
 
-export default function Modal({ title, onClose, children, footer, count }) {
+export default function Modal({ title, onClose, children, footer = undefined, count = undefined }) {
   return (
     <div className="modal-overlay no-print" onClick={onClose}>
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>

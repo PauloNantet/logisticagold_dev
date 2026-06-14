@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, useLayoutEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import { autoResize } from "../utils/formatters";
+import { autoResize, formatDateMask } from "../utils/formatters";
 import { Section, InputField } from "../utils/components";
 
+/** @param {{ data: any, clients: any[], total: number, descontoCalculado: number, impostoCalculado: number, finalTotal: number, update: Function, updateItem: Function, addItem: (e: import('react').MouseEvent<HTMLButtonElement>) => void, removeItem: Function, onSubmit: (e: import('react').FormEvent<HTMLFormElement>) => void, fieldErrors?: Record<string, boolean>, clearFieldError?: Function, scrollToError?: boolean }} props */
 export default function OrcamentoForm({ data, clients, total, descontoCalculado, impostoCalculado, finalTotal, update, updateItem, addItem, removeItem, onSubmit, fieldErrors = {}, clearFieldError, scrollToError }) {
   const lastItemRef = useRef(null);
   const prevItensLength = useRef(data.itens.length);
@@ -78,9 +79,10 @@ export default function OrcamentoForm({ data, clients, total, descontoCalculado,
   useLayoutEffect(() => {
     const inputs = document.querySelectorAll(".items-table tbody input");
     inputs.forEach((input) => {
-      input.style.width = "";
-      if (input.scrollWidth > input.clientWidth + 1) {
-        input.style.width = (input.scrollWidth + 2) + "px";
+      const el = /** @type {HTMLInputElement} */ (input);
+      el.style.width = "";
+      if (el.scrollWidth > el.clientWidth + 1) {
+        el.style.width = (el.scrollWidth + 2) + "px";
       }
     });
   });
@@ -264,14 +266,15 @@ export default function OrcamentoForm({ data, clients, total, descontoCalculado,
               <label className="input-label">Data de Emissão</label>
               <input 
                 ref={dataEmissaoRef}
-                type="date"
+                type="text"
                 value={data.orcamento.data} 
                 onChange={(e) => {
-                  update("orcamento", "data", e.target.value);
+                  update("orcamento", "data", formatDateMask(e.target.value));
                   if (fieldErrors.dataEmissao) clearFieldError("dataEmissao");
                 }}
                 className={`custom-input${fieldErrors.dataEmissao ? ' input-error' : ''}`}
-                placeholder="Data de emissão" 
+                placeholder="DD/MM/AAAA"
+                maxLength={10}
               />
             </div>
             <InputField 
@@ -429,7 +432,7 @@ export default function OrcamentoForm({ data, clients, total, descontoCalculado,
                   </tr>
                 ))}
                 <tr className="total-row">
-                  <td colSpan="3" className="text-right total-label">Total Geral:</td>
+                  <td colSpan={3} className="text-right total-label">Total Geral:</td>
                   <td className="text-right total-value">{safeTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
                   <td></td>
                 </tr>

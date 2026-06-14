@@ -25,11 +25,11 @@ body[data-theme="blue"] {
 .invoice-paper.theme-blue .summary-rows,
 .invoice-paper.theme-blue .total-main-row { border-top: 2px solid #2563eb !important; }
 .invoice-paper.theme-blue .total-main-row .total-value { color: #2563eb !important; text-shadow: 0 0 8px rgba(37,99,235,0.4); }
-.invoice-paper.theme-blue .invoice-table { border-collapse: collapse; border: 2px solid #999999; }
+.invoice-paper.theme-blue .invoice-table { border-collapse: collapse; }
 .invoice-paper.theme-blue .invoice-table thead { background-color: #ffffff !important; }
-.invoice-paper.theme-blue .invoice-table th { color: #2563eb !important; border: 2px solid #999999; text-shadow: 0 0 8px rgba(37,99,235,0.4); }
+.invoice-paper.theme-blue .invoice-table th { color: #2563eb !important; border: 2px solid #999999 !important; text-shadow: 0 0 8px rgba(37,99,235,0.4); }
 .invoice-paper.theme-blue .invoice-table tbody { background-color: #ffffff !important; }
-.invoice-paper.theme-blue .invoice-table td { border: 2px solid #999999; color: #888888 !important; }
+.invoice-paper.theme-blue .invoice-table td { border: 2px solid #999999 !important; color: #888888 !important; }
 .invoice-paper.theme-blue .invoice-logo { border-color: #2563eb !important; border-width: 2px; box-shadow: 0 4px 15px rgba(37,99,235,0.3); }
 .invoice-paper.theme-blue .client-box,
 .invoice-paper.theme-blue .responsible-box,

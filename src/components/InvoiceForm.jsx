@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { Trash2, Plus } from "lucide-react";
-import { autoResize } from "../utils/formatters";
+import { autoResize, formatDateMask } from "../utils/formatters";
 import { Section, InputField } from "../utils/components";
 
+/** @param {{ data: any, clients: any[], services: any[], total: number, descontoCalculado: number, impostoCalculado: number, finalTotal: number, update: Function, updateItem: Function, addItem: (e: import('react').MouseEvent<HTMLButtonElement>) => void, removeItem: Function, onSubmit: (e: import('react').FormEvent<HTMLFormElement>) => void, onLogoChange: Function, fieldErrors?: Record<string, boolean>, clearFieldError?: Function, scrollToError?: boolean }} props */
 export default function InvoiceForm({ data, clients, services, total, descontoCalculado, impostoCalculado, finalTotal, update, updateItem, addItem, removeItem, onSubmit, onLogoChange, fieldErrors = {}, clearFieldError, scrollToError }) {
   const lastItemRef = useRef(null);
   const prevItensLength = useRef(data.itens.length);
@@ -94,9 +95,10 @@ export default function InvoiceForm({ data, clients, services, total, descontoCa
   useLayoutEffect(() => {
     const inputs = document.querySelectorAll(".items-table tbody input");
     inputs.forEach((input) => {
-      input.style.width = "";
-      if (input.scrollWidth > input.clientWidth + 1) {
-        input.style.width = (input.scrollWidth + 2) + "px";
+      const el = /** @type {HTMLInputElement} */ (input);
+      el.style.width = "";
+      if (el.scrollWidth > el.clientWidth + 1) {
+        el.style.width = (el.scrollWidth + 2) + "px";
       }
     });
   });
@@ -390,20 +392,32 @@ export default function InvoiceForm({ data, clients, services, total, descontoCa
               <label className="input-label">Data de Emissão</label>
               <input 
                 ref={dataEmissaoRef}
-                type="date"
+                type="text"
                 value={data.fatura.data} 
                 onChange={(e) => {
-                  update("fatura", "data", e.target.value);
+                  update("fatura", "data", formatDateMask(e.target.value));
                   if (fieldErrors.dataEmissao) clearFieldError("dataEmissao");
                 }}
                 className={`custom-input${fieldErrors.dataEmissao ? ' input-error' : ''}`}
-                placeholder="Data de emissão" 
+                placeholder="DD/MM/AAAA"
+                maxLength={10}
               />
             </div>
-            <InputField label="Data de Vencimento" type="date" value={data.fatura.vencimento} onChange={(e) => {
-              update("fatura", "vencimento", e.target.value);
-              if (fieldErrors.dataVencimento) clearFieldError("dataVencimento");
-            }} placeholder="Data de vencimento" error={fieldErrors.dataVencimento} inputRef={dataVencimentoRef} />
+            <div className={`input-group${fieldErrors.dataVencimento ? ' input-error' : ''}`}>
+              <label className="input-label">Data de Vencimento</label>
+              <input 
+                ref={dataVencimentoRef}
+                type="text"
+                value={data.fatura.vencimento} 
+                onChange={(e) => {
+                  update("fatura", "vencimento", formatDateMask(e.target.value));
+                  if (fieldErrors.dataVencimento) clearFieldError("dataVencimento");
+                }}
+                className={`custom-input${fieldErrors.dataVencimento ? ' input-error' : ''}`}
+                placeholder="DD/MM/AAAA"
+                maxLength={10}
+              />
+            </div>
           </div>
         </Section>
 
@@ -571,7 +585,7 @@ export default function InvoiceForm({ data, clients, services, total, descontoCa
                 ))}
                 {/* LINHA DE TOTAL */}
                 <tr className="total-row">
-                  <td colSpan="4" className="text-right total-label">Total Geral:</td>
+                  <td colSpan={4} className="text-right total-label">Total Geral:</td>
                   <td className="text-right total-value">{safeTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
                   <td></td>
                 </tr>

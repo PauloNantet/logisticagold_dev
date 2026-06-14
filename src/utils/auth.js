@@ -53,9 +53,10 @@ export function isAdmin() {
 
 export async function getAllUsers() {
   try {
-    return await api.get("/api/auth/users");
+    const data = await api.get("/api/auth/users");
+    return data;
   } catch {
-    return [];
+    return { admin: null, users: [] };
   }
 }
 

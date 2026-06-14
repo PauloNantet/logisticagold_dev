@@ -3,7 +3,7 @@ import { updateMyAccount, getCurrentUser } from "../utils/auth";
 
 export default function AccountSettings({ onClose }) {
   const user = getCurrentUser();
-  const [username, setUsername] = useState(user?.displayName || user?.username || "");
+  const [displayName, setDisplayName] = useState(user?.displayName || "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [error, setError] = useState("");
@@ -15,14 +15,16 @@ export default function AccountSettings({ onClose }) {
     setSuccess("");
 
     const body = {};
-    if (username.trim()) body.username = username.trim();
+    if (displayName.trim() !== (user?.displayName || "")) {
+      body.username = displayName.trim();
+    }
     if (newPassword) {
       body.currentPassword = currentPassword;
       body.newPassword = newPassword;
     }
 
     if (!body.username && !body.newPassword) {
-      setError("Preencha pelo menos o nome de usuário ou uma nova senha.");
+      setError("Nenhuma alteração para salvar.");
       return;
     }
 
@@ -52,12 +54,23 @@ export default function AccountSettings({ onClose }) {
 
           <form onSubmit={handleSave}>
             <div className="input-group">
-              <label className="input-label">Nome de usuário</label>
+              <label className="input-label">Login</label>
               <input
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Seu nome de usuário"
+                value={user?.username || ""}
+                className="custom-input"
+                style={{ opacity: 0.6 }}
+                disabled
+              />
+            </div>
+
+            <div className="input-group" style={{ marginTop: 16 }}>
+              <label className="input-label">Nome de exibição</label>
+              <input
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Seu nome de exibição"
                 className="custom-input"
               />
             </div>

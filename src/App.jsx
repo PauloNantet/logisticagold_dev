@@ -41,7 +41,10 @@ function escapeHTML(str) {
 
 const getToday = () => {
   const d = new Date();
-  return d.toISOString().split('T')[0];
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
 };
 
 const INITIAL_DATA_TEMPLATE = {
@@ -183,18 +186,19 @@ function AuthenticatedApp({ onLogout }) {
         setOsHistory(os);
         setMapaHistory(mapas);
         setOrcamentoHistory(orcs);
+        const loadedTema = localStorage.getItem("fatura_theme") || settings.tema || "white";
         setSavedSettings(settings);
         setData(prev => ({
           ...prev,
           empresa: settings.empresa || {},
           pagamento: settings.pagamento || {},
-          tema: settings.tema || "white"
+          tema: loadedTema
         }));
         setOrcamentoData(prev => ({
           ...prev,
           empresa: settings.empresa || {},
           pagamento: settings.pagamento || {},
-          tema: settings.tema || "white"
+          tema: loadedTema
         }));
       } catch (err) {
         console.error("Erro ao carregar dados:", err);
@@ -289,22 +293,14 @@ function AuthenticatedApp({ onLogout }) {
   };
 
   const handleSaveSettings = async (newSettings) => {
+    const tema = newSettings.tema || "white";
+    localStorage.setItem("fatura_theme", tema);
+    setData(prev => ({ ...prev, empresa: newSettings.empresa || {}, pagamento: newSettings.pagamento || {}, tema }));
+    setOrcamentoData(prev => ({ ...prev, empresa: newSettings.empresa || {}, pagamento: newSettings.pagamento || {}, tema }));
+    setShowSettings(false);
     try {
       await api.put("/api/settings", newSettings);
       setSavedSettings(newSettings);
-      setData(prev => ({
-        ...prev,
-        empresa: newSettings.empresa || {},
-        pagamento: newSettings.pagamento || {},
-        tema: newSettings.tema || "white"
-      }));
-      setOrcamentoData(prev => ({
-        ...prev,
-        empresa: newSettings.empresa || {},
-        pagamento: newSettings.pagamento || {},
-        tema: newSettings.tema || "white"
-      }));
-      setShowSettings(false);
     } catch (err) {
       console.error("Erro ao salvar configurações:", err);
     }
@@ -1202,11 +1198,26 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (isLoggedIn()) {
-      fetchMe().then(() => setLoading(false)).catch(() => setLoading(false));
-    } else {
+    async function init() {
+      const savedTheme = localStorage.getItem("fatura_theme");
+      if (savedTheme) {
+        document.body.dataset.theme = savedTheme;
+      } else {
+        try {
+          const res = await fetch("/api/settings/theme");
+          const data = await res.json();
+          if (data.tema) {
+            localStorage.setItem("fatura_theme", data.tema);
+            document.body.dataset.theme = data.tema;
+          }
+        } catch {}
+      }
+      if (isLoggedIn()) {
+        await fetchMe();
+      }
       setLoading(false);
     }
+    init();
   }, []);
 
   if (loading) return null;

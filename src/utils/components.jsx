@@ -7,7 +7,7 @@ export const Section = ({ title, children }) => (
   </section>
 );
 
-export const InputField = ({ label, value, onChange, onInput, onKeyDown, onBlur, type = "text", placeholder = "", readOnly = false, error = false, inputRef }) => (
+export const InputField = ({ label, value, onChange = undefined, onInput = undefined, onKeyDown = undefined, onBlur = undefined, type = "text", placeholder = "", readOnly = false, error = false, inputRef = undefined, maxLength = undefined }) => (
   <div className={`input-group${error ? ' input-error' : ''}`}>
     <label className="input-label">{label}</label>
     <input
@@ -20,6 +20,7 @@ export const InputField = ({ label, value, onChange, onInput, onKeyDown, onBlur,
       onBlur={onBlur}
       placeholder={placeholder}
       readOnly={readOnly}
+      maxLength={maxLength}
       className={`custom-input${error ? ' input-error' : ''}${readOnly ? ' bg-gray-100 cursor-not-allowed opacity-75' : ''}`}
     />
   </div>

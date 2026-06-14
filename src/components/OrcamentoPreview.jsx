@@ -158,20 +158,20 @@ export default function OrcamentoPreview({ data, total, descontoCalculado, impos
             <thead>
               <tr>
                 <th>Descrição</th>
-                <th className="text-right">Valor</th>
+                <th className="text-center">Valor</th>
                 <th className="text-center">Qtd</th>
-                <th className="text-right">Total</th>
+                <th className="text-center">Total</th>
               </tr>
             </thead>
             <tbody>
               {data.itens.map((item, i) => (
                 <tr key={i}>
                   <td className="item-name">{item.descricao || "---"}</td>
-                  <td className="text-right">
+                  <td className="text-center">
                     {Number(item.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   </td>
                   <td className="text-center">{item.quantidade}</td>
-                  <td className="text-right font-bold">
+                  <td className="text-center font-bold">
                     {(Number(item.valor) * Number(item.quantidade)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   </td>
                 </tr>

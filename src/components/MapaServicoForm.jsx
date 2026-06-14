@@ -49,6 +49,7 @@ export default function MapaServicoForm({
     veiculo: "",
     placa: "",
     motorista: "",
+    contato_motorista: "",
     valor_pagar: "",
     valor_receber: "",
   });
@@ -517,8 +518,8 @@ export default function MapaServicoForm({
   const sortByData = (a, b, dir) => {
     const dateA = new Date(a.data?.split("/").reverse().join("-") || a.data);
     const dateB = new Date(b.data?.split("/").reverse().join("-") || b.data);
-    if (isNaN(dateA) || isNaN(dateB)) return 0;
-    return dir === "asc" ? dateA - dateB : dateB - dateA;
+    if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) return 0;
+    return dir === "asc" ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
   };
 
   const sortedEntries = [...filteredEntries].sort((a, b) => {
@@ -547,7 +548,7 @@ export default function MapaServicoForm({
     return sortConfig.direction === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
   });
 
-  const SortHeader = ({ label, sortKey, style }) => (
+  const SortHeader = ({ label, sortKey, style = undefined }) => (
     <th onClick={() => handleSort(sortKey)} style={{ cursor: "pointer", userSelect: "none", ...style }}>
       {label}
     </th>
@@ -564,15 +565,6 @@ export default function MapaServicoForm({
   return (
     <div className="invoice-form-container">
       <form onSubmit={(e) => { e.preventDefault(); }}>
-        {/* NOVO SERVIÇO BUTTON (when no entries yet) */}
-        {!showForm && entries.length === 0 && (
-          <div className="form-actions-standard" style={{ marginBottom: 16 }}>
-            <button type="button" onClick={() => { setShowForm(true); setEditingId(null); setEntry({ fornecedor: "", numero: "", data: "", hora: "", voo: "", servico: "", nome_guia: "", tel_guia: "", nome_pax: "", pax: "", file_evento: "", cliente: { nome: "", documento: "", email: "", endereco: "" }, observacao: "", veiculo: "", placa: "", motorista: "", contato_motorista: "", valor_pagar: "", valor_receber: "" }); }} className="submit-btn">
-              Agendar Serviço
-            </button>
-          </div>
-        )}
-
         {/* CURRENT ENTRY FORM */}
         {showForm && (
         <section className="section-card uppercase-form" ref={formRef}>
@@ -712,8 +704,7 @@ export default function MapaServicoForm({
         )}
 
         {/* ENTRIES TABLE */}
-        {entries.length > 0 && (
-          <section className="section-card">
+        <section className="section-card">
             <div className="clients-list-container">
               <div className="modal-header-row">
                 <div style={{ display: "flex", alignItems: "center", gap: 8, flex: 1 }}>
@@ -735,7 +726,7 @@ export default function MapaServicoForm({
                   <button type="button" onClick={() => onSubmit(sortedEntries, showFinanceiro)} className="action-tab-btn" style={{ whiteSpace: "nowrap" }}>
                     Gerar Mapa
                   </button>
-                  <button type="button" onClick={() => { setShowForm(true); setEditingId(null); setEntry({ fornecedor: "", numero: "", data: "", hora: "", voo: "", servico: "", nome_guia: "", tel_guia: "", nome_pax: "", pax: "", file_evento: "", cliente: { nome: "", documento: "", email: "", endereco: "" }, observacao: "", veiculo: "", placa: "", motorista: "", contato_motorista: "", valor_pagar: "", valor_receber: "" }); }} className="action-tab-btn">
+                  <button type="button" onClick={() => { setShowForm(true); setEditingId(null); setEntry({ fornecedor: "", numero: "", data: "", hora: "", voo: "", servico: "", nome_guia: "", tel_guia: "", nome_pax: "", pax: "", file_evento: "", cliente: { nome: "", documento: "", email: "", endereco: "" }, observacao: "", veiculo: "", placa: "", motorista: "", contato_motorista: "", valor_pagar: "", valor_receber: "" }); }} className={`action-tab-btn${entries.length === 0 ? " pulse-btn" : ""}`}>
                     Agendar Serviço
                   </button>
                 </div>
@@ -974,7 +965,6 @@ export default function MapaServicoForm({
               </div>
             </div>
           </section>
-        )}
 
       </form>
       {confirmDeleteId !== null && (
