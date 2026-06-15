@@ -121,7 +121,7 @@ export default function ClientsModal({ onClose }) {
             <Search size={14} className="search-icon" />
           </div>
           <button onClick={startAdding} className="save-settings-btn" style={{ flex: "none", padding: "10px 20px", whiteSpace: "nowrap" }}>
-            <Plus size={16} /> Novo
+            <Plus size={16} /> NOVO CLIENTE
           </button>
         </div>
       )}

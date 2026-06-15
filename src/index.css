@@ -1772,6 +1772,10 @@ tr:hover td {
 
 .save-settings-btn {
   flex: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   background: linear-gradient(135deg, var(--primary), var(--primary-dark));
   color: #000;
   padding: 14px;
