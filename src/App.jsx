@@ -872,6 +872,7 @@ function AuthenticatedApp({ onLogout }) {
   const convertOrcamentoToInvoice = (fullData) => {
     setData({
       ...INITIAL_DATA_TEMPLATE,
+      fatura: { ...INITIAL_DATA_TEMPLATE.fatura, numero: fullData.orcamento?.numero || "" },
       cliente: { ...fullData.cliente },
       responsavel: { ...fullData.responsavel },
       itens: (fullData.itens || []).map(item => ({
