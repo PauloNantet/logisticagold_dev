@@ -89,6 +89,11 @@ export default function InvoicePreview({ data, qrCode, total, descontoCalculado,
           ⬇ Baixar Fatura em PDF
         </button>
 
+        {isLocked && (
+          <button onClick={onBackToHistory} className="history-back-btn">
+            📋 Voltar ao Histórico
+          </button>
+        )}
       </div>
 
       {isLocked && (

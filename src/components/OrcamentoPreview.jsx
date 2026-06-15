@@ -90,6 +90,11 @@ export default function OrcamentoPreview({ data, total, descontoCalculado, impos
           ⬇ Baixar Orçamento em PDF
         </button>
 
+        {isLocked && (
+          <button onClick={onBackToHistory} className="history-back-btn">
+            📋 Voltar ao Histórico
+          </button>
+        )}
       </div>
 
       {isLocked && (
@@ -156,17 +161,19 @@ export default function OrcamentoPreview({ data, total, descontoCalculado, impos
         <div className="items-section">
           <table className="invoice-table">
             <thead>
-              <tr>
-                <th>Descrição</th>
-                <th className="text-center">Valor</th>
-                <th className="text-center">Qtd</th>
-                <th className="text-center">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.itens.map((item, i) => (
-                <tr key={i}>
-                  <td className="item-name">{item.descricao || "---"}</td>
+                <tr>
+                  <th>Produto/Serviço</th>
+                  <th>Descrição</th>
+                  <th className="text-center">Valor</th>
+                  <th className="text-center">Qtd</th>
+                  <th className="text-center">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.itens.map((item, i) => (
+                  <tr key={i}>
+                    <td className="item-name">{item.produto || "---"}</td>
+                    <td>{item.descricao || "---"}</td>
                   <td className="text-center">
                     {Number(item.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   </td>

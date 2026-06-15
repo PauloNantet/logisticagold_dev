@@ -38,6 +38,11 @@ export default function MapaServicoPreview({ entries, empresa, showFinanceiro, i
         <button onClick={handleDownload} className="download-btn">
           ⬇ Baixar {isOS ? "Ordem" : "Mapa"} em PDF
         </button>
+        {isLocked && (
+          <button onClick={onBackToHistory} className="history-back-btn">
+            📋 Voltar ao Histórico
+          </button>
+        )}
       </div>
 
       {isLocked && (

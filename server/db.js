@@ -4,6 +4,13 @@ const { Pool } = pg;
 const pool = new Pool({
   connectionString: process.env.DATABASE_PRIVATE_URL || process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL || process.env.DATABASE_PRIVATE_URL ? { rejectUnauthorized: false } : false,
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+});
+
+pool.on("error", (err) => {
+  console.error("Erro inesperado no pool do banco:", err.message);
 });
 
 async function initDB() {

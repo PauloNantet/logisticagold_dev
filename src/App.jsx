@@ -75,7 +75,7 @@ const INITIAL_ORCAMENTO_TEMPLATE = {
   orcamento: { numero: "", data: getToday(), validade: "" },
   cliente: { nome: "", documento: "", email: "", endereco: "" },
   responsavel: { nome: "", telefone: "", telefoneCustom: false, email: "" },
-  itens: [{ descricao: "", valor: "", quantidade: "1" }],
+  itens: [{ produto: "", descricao: "", valor: "", quantidade: "1" }],
   desconto: { tipo: "fixed", valor: "" },
   imposto: { tipo: "fixed", valor: "" },
   observacoes: "",
@@ -412,7 +412,7 @@ function AuthenticatedApp({ onLogout }) {
   };
   const restoreHistoryItem = async (fullData, isViewing = true) => {
     if (isViewing) {
-      setData({ ...fullData, tema: fullData.tema || data.tema || "white" });
+      setData({ ...fullData, tema: data.tema });
       setIsLocked(true);
       setPreview(true);
     } else {
@@ -756,7 +756,7 @@ function AuthenticatedApp({ onLogout }) {
   const orcamentoAddItem = () => {
     setOrcamentoData((prev) => ({
       ...prev,
-      itens: [...prev.itens, { descricao: "", valor: "", quantidade: "1" }],
+      itens: [...prev.itens, { produto: "", descricao: "", valor: "", quantidade: "1" }],
     }));
   };
 
@@ -782,7 +782,7 @@ function AuthenticatedApp({ onLogout }) {
       responsavelNome: false,
       responsavelTelefone: false,
       dataEmissao: !orcamentoData.orcamento.data,
-      itens: !orcamentoData.itens.every(item => item.descricao.trim() && item.valor && item.quantidade),
+      itens: !orcamentoData.itens.every(item => item.produto.trim() && item.valor && item.quantidade),
       orcamentoNumero: !orcamentoData.orcamento.numero.trim(),
       orcamentoValidade: !orcamentoData.orcamento.validade.trim(),
     };
@@ -840,7 +840,7 @@ function AuthenticatedApp({ onLogout }) {
 
   const restoreOrcamentoHistoryItem = async (fullData, isViewing = true) => {
     if (isViewing) {
-      setOrcamentoData({ ...fullData, tema: fullData.tema || orcamentoData.tema || "white" });
+      setOrcamentoData({ ...fullData, tema: orcamentoData.tema });
       setOrcamentoIsLocked(true);
       setOrcamentoPreview(true);
     } else {
@@ -867,6 +867,28 @@ function AuthenticatedApp({ onLogout }) {
     });
     setOrcamentoIsLocked(false);
     setOrcamentoPreview(false);
+  };
+
+  const convertOrcamentoToInvoice = (fullData) => {
+    setData({
+      ...INITIAL_DATA_TEMPLATE,
+      cliente: { ...fullData.cliente },
+      responsavel: { ...fullData.responsavel },
+      itens: (fullData.itens || []).map(item => ({
+        produto: item.produto || item.descricao || "",
+        descricao: item.produto ? (item.descricao || "") : "",
+        valor: item.valor || "",
+        quantidade: item.quantidade || "1"
+      })),
+      desconto: { ...fullData.desconto },
+      imposto: { ...fullData.imposto },
+      observacoes: fullData.observacoes || "",
+      empresa: data.empresa,
+      pagamento: data.pagamento,
+      tema: data.tema
+    });
+    setShowOrcamentoHistory(false);
+    setActiveTab("fatura");
   };
 
   const handleLogout = () => {
@@ -1028,6 +1050,7 @@ function AuthenticatedApp({ onLogout }) {
             history={orcamentoHistory}
             onDelete={deleteOrcamentoHistoryItem}
             onRestore={restoreOrcamentoHistoryItem}
+            onConvertToInvoice={convertOrcamentoToInvoice}
             onClose={() => setShowOrcamentoHistory(false)}
           />
         )}
@@ -1163,6 +1186,7 @@ function AuthenticatedApp({ onLogout }) {
           <OrcamentoForm
             data={orcamentoData}
             clients={clients}
+            services={services}
             total={orcamentoTotal}
             descontoCalculado={orcamentoDesconto}
             impostoCalculado={orcamentoImposto}

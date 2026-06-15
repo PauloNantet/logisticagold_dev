@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import { Plus, Trash2 } from "lucide-react";
 import { autoResize, formatDateMask } from "../utils/formatters";
 import { Section, InputField } from "../utils/components";
 
-/** @param {{ data: any, clients: any[], total: number, descontoCalculado: number, impostoCalculado: number, finalTotal: number, update: Function, updateItem: Function, addItem: (e: import('react').MouseEvent<HTMLButtonElement>) => void, removeItem: Function, onSubmit: (e: import('react').FormEvent<HTMLFormElement>) => void, fieldErrors?: Record<string, boolean>, clearFieldError?: Function, scrollToError?: boolean }} props */
-export default function OrcamentoForm({ data, clients, total, descontoCalculado, impostoCalculado, finalTotal, update, updateItem, addItem, removeItem, onSubmit, fieldErrors = {}, clearFieldError, scrollToError }) {
+/** @param {{ data: any, clients: any[], services: any[], total: number, descontoCalculado: number, impostoCalculado: number, finalTotal: number, update: Function, updateItem: Function, addItem: (e: import('react').MouseEvent<HTMLButtonElement>) => void, removeItem: Function, onSubmit: (e: import('react').FormEvent<HTMLFormElement>) => void, fieldErrors?: Record<string, boolean>, clearFieldError?: Function, scrollToError?: boolean }} props */
+export default function OrcamentoForm({ data, clients, services, total, descontoCalculado, impostoCalculado, finalTotal, update, updateItem, addItem, removeItem, onSubmit, fieldErrors = {}, clearFieldError, scrollToError }) {
   const lastItemRef = useRef(null);
   const prevItensLength = useRef(data.itens.length);
   
@@ -54,11 +55,23 @@ export default function OrcamentoForm({ data, clients, total, descontoCalculado,
   const [focusedClientIndex, setFocusedClientIndex] = useState(-1);
   const clientSuggestionsRef = useRef(null);
 
+  const [activeItemIndex, setActiveItemIndex] = useState(null);
+  const [filteredServices, setFilteredServices] = useState([]);
+  const [focusedServiceIndex, setFocusedServiceIndex] = useState(-1);
+  const serviceSuggestionsRef = useRef(null);
+  const [serviceDropdownStyle, setServiceDropdownStyle] = useState(null);
+  const itemInputRefs = useRef([]);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (clientSuggestionsRef.current && !clientSuggestionsRef.current.contains(event.target)) {
         setShowClientSuggestions(false);
         setFocusedClientIndex(-1);
+      }
+      if (serviceSuggestionsRef.current && !serviceSuggestionsRef.current.contains(event.target)) {
+        setActiveItemIndex(null);
+        setFocusedServiceIndex(-1);
+        setServiceDropdownStyle(null);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -146,6 +159,99 @@ export default function OrcamentoForm({ data, clients, total, descontoCalculado,
     } else if (e.key === "Escape") {
       setShowClientSuggestions(false);
       setFocusedClientIndex(-1);
+    }
+  };
+
+  useEffect(() => {
+    if (focusedServiceIndex >= 0 && serviceSuggestionsRef.current) {
+      const activeItem = serviceSuggestionsRef.current.children[focusedServiceIndex];
+      if (activeItem) {
+        activeItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }
+  }, [focusedServiceIndex]);
+
+  useEffect(() => {
+    if (activeItemIndex === null) return;
+    const handleScrollOrResize = () => {
+      updateServiceDropdownPosition(activeItemIndex);
+    };
+    window.addEventListener('scroll', handleScrollOrResize, true);
+    window.addEventListener('resize', handleScrollOrResize);
+    return () => {
+      window.removeEventListener('scroll', handleScrollOrResize, true);
+      window.removeEventListener('resize', handleScrollOrResize);
+    };
+  }, [activeItemIndex]);
+
+  const updateServiceDropdownPosition = (index) => {
+    const input = itemInputRefs.current[index];
+    if (input) {
+      const rect = input.getBoundingClientRect();
+      const cell = input.closest('td');
+      const cellWidth = cell ? cell.getBoundingClientRect().width : rect.width;
+      setServiceDropdownStyle({
+        position: 'fixed',
+        top: `${rect.bottom + 4}px`,
+        left: `${rect.left}px`,
+        width: `${Math.max(cellWidth, 300)}px`,
+      });
+    }
+  };
+
+  const handleItemNameChange = (index, val) => {
+    updateItem(index, "produto", val);
+    if (val.length > 0) {
+      const filtered = (services || []).filter(s =>
+        s.produto.toLowerCase().includes(val.toLowerCase())
+      );
+      setFilteredServices(filtered.slice(0, 3));
+      setActiveItemIndex(index);
+      setFocusedServiceIndex(-1);
+      updateServiceDropdownPosition(index);
+    } else {
+      setActiveItemIndex(null);
+      setFocusedServiceIndex(-1);
+      setServiceDropdownStyle(null);
+    }
+  };
+
+  const normalizeValue = (val) => {
+    if (!val) return "";
+    let s = val.trim();
+    if (s.includes(",")) {
+      s = s.replace(/\./g, "").replace(",", ".");
+    }
+    const num = parseFloat(s);
+    return isNaN(num) ? "" : num.toString();
+  };
+
+  const selectService = (index, service) => {
+    updateItem(index, "produto", service.produto);
+    updateItem(index, "descricao", service.descricao);
+    updateItem(index, "valor", normalizeValue(service.valor));
+    setActiveItemIndex(null);
+    setFocusedServiceIndex(-1);
+    setServiceDropdownStyle(null);
+  };
+
+  const handleServiceKeyDown = (e, index) => {
+    if (activeItemIndex !== index || filteredServices.length === 0) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setFocusedServiceIndex(prev => (prev < filteredServices.length - 1 ? prev + 1 : prev));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setFocusedServiceIndex(prev => (prev > 0 ? prev - 1 : 0));
+    } else if (e.key === "Enter") {
+      if (focusedServiceIndex >= 0) {
+        e.preventDefault();
+        selectService(index, filteredServices[focusedServiceIndex]);
+      }
+    } else if (e.key === "Escape") {
+      setActiveItemIndex(null);
+      setFocusedServiceIndex(-1);
+      setServiceDropdownStyle(null);
     }
   };
 
@@ -375,67 +481,90 @@ export default function OrcamentoForm({ data, clients, total, descontoCalculado,
           <h3 className="section-title">Itens & Serviços</h3>
           {fieldErrors.itens && <p className="section-error-msg">Preencha todos os campos de cada item para continuar.</p>}
           <div className="table-responsive">
-            <table className="items-table">
-              <thead>
-                <tr>
-                  <th className="descrição">Descrição</th>
-                  <th className="valor-unit text-right">Valor</th>
-                  <th className="qtd text-center">Qtd</th>
-                  <th className="subtotal text-right">Subtotal</th>
-                  <th className="acoes text-center">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.itens.map((item, i) => (
-                  <tr key={i}>
-                    <td>
-                      <input 
-                        ref={(el) => {
-                          if (i === data.itens.length - 1) {
-                            lastItemRef.current = el;
-                          }
-                        }}
-                        value={item.descricao} 
-                        onChange={(e) => updateItem(i, "descricao", e.target.value)}
-                        placeholder="Descrição do item" 
-                      />
-                    </td>
-                    <td className="text-right">
-                      <input 
-                        type="text" 
-                        className="text-right" 
-                        value={item.valor ? (parseFloat(item.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })) : ""} 
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/\D/g, "");
-                          const numericValue = val ? (parseFloat(val) / 100).toString() : "";
-                          updateItem(i, "valor", numericValue);
-                        }} 
-                        placeholder="R$ 0,00"
-                      />
-                    </td>
-                    <td className="text-center">
-                      <input type="text" className="text-center" value={item.quantidade} onChange={(e) => updateItem(i, "quantidade", e.target.value.replace(/\D/g, ""))} placeholder="1" />
-                    </td>
-                    <td className="subtotal-cell">
-                      {(Number(item.valor) * Number(item.quantidade)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                    </td>
-                    <td className="text-center">
-                      <button 
-                        type="button" 
-                        onClick={() => removeItem(i)}
-                        className="delete-item-inline-btn"
-                        title="Remover Item"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
+              <table className="items-table">
+                <thead>
+                  <tr>
+                    <th className="produto">Produto/Serviço</th>
+                    <th className="descrição">Descrição</th>
+                    <th className="valor-unit text-right">Valor</th>
+                    <th className="qtd text-center">Qtd</th>
+                    <th className="subtotal text-right">Subtotal</th>
+                    <th className="acoes text-center">Ações</th>
                   </tr>
-                ))}
-                <tr className="total-row">
-                  <td colSpan={3} className="text-right total-label">Total Geral:</td>
-                  <td className="text-right total-value">{safeTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
-                  <td></td>
-                </tr>
+                </thead>
+                <tbody>
+                  {data.itens.map((item, i) => (
+                    <tr key={i}>
+                      <td>
+                        <input 
+                          ref={(el) => {
+                            itemInputRefs.current[i] = el;
+                            if (i === data.itens.length - 1) {
+                              lastItemRef.current = el;
+                            }
+                          }}
+                          value={item.produto}
+                          onChange={(e) => handleItemNameChange(i, e.target.value)}
+                          onFocus={() => item.produto && handleItemNameChange(i, item.produto)}
+                          onKeyDown={(e) => handleServiceKeyDown(e, i)}
+                          autoComplete="off"
+                          placeholder="Produto/Serviço" 
+                        />
+                        {activeItemIndex === i && filteredServices.length > 0 && serviceDropdownStyle && createPortal(
+                          <ul className="autocomplete-dropdown" ref={serviceSuggestionsRef} style={serviceDropdownStyle}>
+                            {filteredServices.map((service, idx) => (
+                              <li 
+                                key={idx} 
+                                onClick={() => selectService(i, service)} 
+                                className={`suggestion-item ${focusedServiceIndex === idx ? 'focused' : ''}`}
+                              >
+                                <div className="suggestion-name">{service.produto}</div>
+                                <div className="suggestion-meta">{(parseFloat(service.valor || 0)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</div>
+                              </li>
+                            ))}
+                          </ul>,
+                          document.body
+                        )}
+                      </td>
+                      <td>
+                        <input value={item.descricao} onChange={(e) => updateItem(i, "descricao", e.target.value)} placeholder="Descrição" />
+                      </td>
+                      <td className="text-right">
+                        <input 
+                          type="text" 
+                          className="text-right" 
+                          value={item.valor ? (parseFloat(item.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })) : ""} 
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, "");
+                            const numericValue = val ? (parseFloat(val) / 100).toString() : "";
+                            updateItem(i, "valor", numericValue);
+                          }} 
+                          placeholder="R$ 0,00"
+                        />
+                      </td>
+                      <td className="text-center">
+                        <input type="text" className="text-center" value={item.quantidade} onChange={(e) => updateItem(i, "quantidade", e.target.value.replace(/\D/g, ""))} placeholder="1" />
+                      </td>
+                      <td className="subtotal-cell">
+                        {(Number(item.valor) * Number(item.quantidade)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                      </td>
+                      <td className="text-center">
+                        <button 
+                          type="button" 
+                          onClick={() => removeItem(i)}
+                          className="delete-item-inline-btn"
+                          title="Remover Item"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  <tr className="total-row">
+                    <td colSpan={4} className="text-right total-label">Total Geral:</td>
+                    <td className="text-right total-value">{safeTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                    <td></td>
+                  </tr>
               </tbody>
             </table>
           </div>

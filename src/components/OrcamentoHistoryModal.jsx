@@ -10,7 +10,7 @@ const sortData = (data, key, dir) => {
   });
 };
 
-export default function OrcamentoHistoryModal({ history, onDelete, onClose, onRestore }) {
+export default function OrcamentoHistoryModal({ history, onDelete, onClose, onRestore, onConvertToInvoice }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: null, dir: "asc" });
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
@@ -109,6 +109,13 @@ export default function OrcamentoHistoryModal({ history, onDelete, onClose, onRe
                               title="Restaurar para Novo Orçamento"
                             >
                               🔄
+                            </button>
+                            <button 
+                              onClick={() => onConvertToInvoice(item.fullData)}
+                              className="action-icon-btn invoice"
+                              title="Gerar Fatura a partir deste Orçamento"
+                            >
+                              📄
                             </button>
                             <button 
                               onClick={() => setConfirmDeleteId(item.id)}

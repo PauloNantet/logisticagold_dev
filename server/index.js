@@ -90,3 +90,7 @@ initDB().then(async () => {
 
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 process.on("SIGINT", () => shutdown("SIGINT"));
+
+process.on("unhandledRejection", (reason) => {
+  console.error("Rejeição não tratada:", reason?.message || reason);
+});

@@ -1062,6 +1062,24 @@ tr:hover td {
     0 0 30px var(--primary-glow-strong);
 }
 
+.history-back-btn {
+  background: transparent;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  transition: all var(--transition-fast);
+}
+
+.history-back-btn:hover {
+  background: var(--primary);
+  color: #000;
+}
+
 /* ============================================
    LOGIN SCREEN
    ============================================ */
@@ -1534,26 +1552,29 @@ tr:hover td {
   cursor: pointer;
 }
 
-.action-icon-btn.select {
+.action-icon-btn.select,
+.action-icon-btn.edit,
+.action-icon-btn.invoice {
   color: var(--primary);
   border-color: var(--primary);
 }
 
-.action-icon-btn.select:hover {
+.action-icon-btn.select:hover,
+.action-icon-btn.edit:hover,
+.action-icon-btn.invoice:hover {
   background: var(--primary);
   color: #000;
   box-shadow: var(--shadow-glow);
 }
 
-.action-icon-btn.edit:hover {
-  color: var(--primary);
-  background: var(--primary-glow);
+.action-icon-btn.delete {
+  color: #ff4757;
+  border-color: #ff4757;
 }
 
 .action-icon-btn.delete:hover {
+  background: rgba(255, 71, 87, 0.15);
   color: #ff4757;
-  border-color: #ff4757;
-  background: rgba(255, 71, 87, 0.1);
 }
 
 .action-icon-btn.download {
