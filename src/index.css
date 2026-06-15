@@ -54,7 +54,7 @@
 
 html {
   scroll-behavior: smooth;
-  overflow-y: auto;
+  overflow-y: scroll;
 }
 
 body {

@@ -1184,8 +1184,17 @@ export default function ServiceOrderForm({ onSubmit, clients, vehicles, drivers 
 
   if (loading) {
     return (
-      <div className="invoice-form-container" style={{ textAlign: "center", padding: 60 }}>
-        <p style={{ color: "var(--text-placeholder)", fontSize: 14 }}>Carregando ordens de serviço...</p>
+      <div className="invoice-form-container">
+        <section className="section-card">
+          <div className="clients-list-container">
+            <div className="modal-header-row">
+              <h3 className="section-title" style={{ margin: 0 }}>Ordens de Serviço</h3>
+              <div style={{ marginLeft: "auto" }}>
+                <p style={{ color: "var(--text-placeholder)", fontSize: 14 }}>Carregando ordens de serviço...</p>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     );
   }

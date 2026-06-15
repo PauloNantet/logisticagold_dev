@@ -68,7 +68,7 @@ export default function MapaServicoForm({
   const [showDatePopup, setShowDatePopup] = useState(false);
 
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(entries.length === 0);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   const servicoRef = useRef(null);
