@@ -126,7 +126,7 @@ export default function InvoicePreview({ data, qrCode, total, descontoCalculado,
               <p>{data.empresa.email}</p>
             </div>
             <div className="document-info">
-              <p><span className="info-label">Número:</span> <span className="info-value">{formatInvoiceNumber(data.fatura.numero, data.fatura.data)}</span></p>
+              <p><span className="info-label">Número:</span> <span className="info-value">{formatInvoiceNumber(data.fatura.numero)}</span></p>
               <p><span className="info-label">Emissão:</span> {formatDateBR(data.fatura.data)}</p>
               <p className="due-date"><span className="info-label">Vencimento:</span> {formatDateBR(data.fatura.vencimento)}</p>
             </div>

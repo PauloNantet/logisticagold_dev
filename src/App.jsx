@@ -41,7 +41,10 @@ function escapeHTML(str) {
 
 const getToday = () => {
   const d = new Date();
-  return d.toISOString().split('T')[0];
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
 };
 
 const INITIAL_DATA_TEMPLATE = {

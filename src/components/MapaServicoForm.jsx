@@ -49,6 +49,7 @@ export default function MapaServicoForm({
     veiculo: "",
     placa: "",
     motorista: "",
+    contato_motorista: "",
     valor_pagar: "",
     valor_receber: "",
   });
@@ -517,8 +518,8 @@ export default function MapaServicoForm({
   const sortByData = (a, b, dir) => {
     const dateA = new Date(a.data?.split("/").reverse().join("-") || a.data);
     const dateB = new Date(b.data?.split("/").reverse().join("-") || b.data);
-    if (isNaN(dateA) || isNaN(dateB)) return 0;
-    return dir === "asc" ? dateA - dateB : dateB - dateA;
+    if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) return 0;
+    return dir === "asc" ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
   };
 
   const sortedEntries = [...filteredEntries].sort((a, b) => {
@@ -547,7 +548,7 @@ export default function MapaServicoForm({
     return sortConfig.direction === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
   });
 
-  const SortHeader = ({ label, sortKey, style }) => (
+  const SortHeader = ({ label, sortKey, style = undefined }) => (
     <th onClick={() => handleSort(sortKey)} style={{ cursor: "pointer", userSelect: "none", ...style }}>
       {label}
     </th>
