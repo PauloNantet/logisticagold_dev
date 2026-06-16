@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 import { loginUser, fetchMe } from "../utils/auth";
 
-export default function LoginModal({ onLogin }) {
+export default function LoginModal({ onLogin, empresaNome }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -42,7 +42,7 @@ export default function LoginModal({ onLogin }) {
     <div className="login-overlay">
       <div className="login-card">
         <div className="login-header">
-          <h1 className="login-logo">LOG GOLD</h1>
+          <h1 className="login-logo">{empresaNome}</h1>
           <p className="login-slogan">Sistema de Faturamento</p>
         </div>
 

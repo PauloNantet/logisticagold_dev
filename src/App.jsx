@@ -1196,6 +1196,7 @@ function AuthenticatedApp({ onLogout }) {
 export default function App() {
   const [authenticated, setAuthenticated] = useState(() => isLoggedIn());
   const [loading, setLoading] = useState(true);
+  const [empresaNome, setEmpresaNome] = useState("Sua Empresa");
 
   useEffect(() => {
     async function init() {
@@ -1220,10 +1221,24 @@ export default function App() {
     init();
   }, []);
 
+  useEffect(() => {
+    async function fetchNome() {
+      for (let i = 0; i < 15; i++) {
+        try {
+          const res = await fetch("/api/settings/public");
+          const d = await res.json();
+          if (d.nome) { setEmpresaNome(d.nome); return; }
+        } catch {}
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
+    fetchNome();
+  }, []);
+
   if (loading) return null;
 
   if (!authenticated) {
-    return <LoginModal onLogin={() => { setAuthenticated(true); }} />;
+    return <LoginModal onLogin={() => { setAuthenticated(true); }} empresaNome={empresaNome} />;
   }
 
   return <AuthenticatedApp onLogout={() => setAuthenticated(false)} />;
