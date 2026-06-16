@@ -39,15 +39,6 @@ app.get("/api/settings/theme", async (req, res) => {
   } catch { res.json({ tema: "white" }); }
 });
 
-app.get("/api/settings/public", async (req, res) => {
-  try {
-    const { default: pool } = await import("./db.js");
-    const { rows } = await pool.query("SELECT empresa FROM settings LIMIT 1");
-    const empresa = JSON.parse(rows[0]?.empresa || "{}");
-    res.json({ nome: empresa.nome || "Sua Empresa" });
-  } catch { res.json({ nome: "Sua Empresa" }); }
-});
-
 app.use("/api/auth", authRoutes);
 app.use("/api/clients", clientsRoutes);
 app.use("/api/services", servicesRoutes);

@@ -4,6 +4,14 @@ import { authMiddleware } from "../middleware/auth.js";
 
 const router = Router();
 
+router.get("/public", async (req, res) => {
+  try {
+    const { rows } = await pool.query("SELECT empresa FROM settings LIMIT 1");
+    const empresa = JSON.parse(rows[0]?.empresa || "{}");
+    res.json({ nome: empresa.nome || "Sua Empresa" });
+  } catch { res.json({ nome: "Sua Empresa" }); }
+});
+
 router.use(authMiddleware);
 
 router.get("/", async (req, res) => {
