@@ -630,7 +630,7 @@ function AuthenticatedApp({ onLogout }) {
           container.innerHTML = html;
           document.body.appendChild(container);
           setTimeout(() => {
-            downloadInvoicePDF("os-bulk-hidden", fornecedor, "l").finally(() => {
+            downloadInvoicePDF("os-bulk-hidden", motorista, "l").finally(() => {
               setTimeout(() => {
                 if (container.parentNode) document.body.removeChild(container);
                 resolve();
