@@ -140,7 +140,7 @@ function AuthenticatedApp({ onLogout }) {
   const [restoredEntries, setRestoredEntries] = useState([]);
   const [isManualOSFlow, setIsManualOSFlow] = useState(false);
   const [osPreviewSource, setOsPreviewSource] = useState(null);
-  const [autoDownloadOS, setAutoDownloadOS] = useState(false);
+  const [hiddenOSDownload, setHiddenOSDownload] = useState(null);
   const [simulacaoOSData, setSimulacaoOSData] = useState(() => {
     try {
       const saved = localStorage.getItem("fatura_simulacao_os");
@@ -555,12 +555,7 @@ function AuthenticatedApp({ onLogout }) {
   };
 
   const handleDownloadSingleOS = (entry) => {
-    setOsPreviewEntries([entry]);
-    setOsIsLocked(false);
-    setOsPreview(true);
-    setOsPreviewSource("single");
-    setAutoDownloadOS(true);
-    window.scrollTo(0, 0);
+    setHiddenOSDownload(entry);
   };
 
   const handleBulkDownloadOS = async (selectedEntries) => {
@@ -1092,8 +1087,6 @@ function AuthenticatedApp({ onLogout }) {
               setOsPreviewSource(null);
             }}
             isOS={true}
-            autoDownload={autoDownloadOS}
-            onAutoDownloadDone={() => setAutoDownloadOS(false)}
           />
         ) : activeTab === "ordem-servico" ? (
           <ServiceOrderForm
@@ -1109,6 +1102,45 @@ function AuthenticatedApp({ onLogout }) {
             onBulkDownloadOS={handleBulkDownloadOS}
           />
         ) : null}
+
+        {/* OS DOWNLOAD OCULTO */}
+        {hiddenOSDownload && (
+          <div style={{ position: "fixed", left: "-9999px", top: 0, pointerEvents: "none", opacity: 0 }}>
+            <MapaServicoPreview
+              entries={[hiddenOSDownload]}
+              empresa={data.empresa}
+              isLocked={false}
+              onBack={() => {}}
+              onDownload={() => {
+                const filename = (hiddenOSDownload.motorista || "OS").toUpperCase();
+                downloadInvoicePDF("mapa-servico", filename, "l").finally(() => {
+                  const entry = hiddenOSDownload;
+                  const fornecedores = [entry.fornecedor].filter(Boolean);
+                  api.post("/api/service-orders", {
+                    numero: entry.numero || "",
+                    dataEmissao: entry.data || "",
+                    hora: entry.hora || "",
+                    servico: fornecedores.join(", ") || "OS",
+                    cliente: entry.cliente?.nome || "",
+                    nomePax: entry.nome_pax || "",
+                    entries: [entry],
+                    fullData: { entries: [entry], empresa: data.empresa }
+                  }).then(saved => {
+                    setOsHistory(prev => [saved, ...prev]);
+                  }).catch(err => {
+                    console.error("Erro ao salvar OS:", err);
+                  }).finally(() => {
+                    setHiddenOSDownload(null);
+                  });
+                });
+              }}
+              onBackToHistory={() => {}}
+              isOS={true}
+              autoDownload={true}
+              onAutoDownloadDone={() => {}}
+            />
+          </div>
+        )}
 
         {/* MAPA DE SERVICO */}
         {activeTab === "mapa" && mapaPreview ? (
