@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useLayoutEffect } from "react";
 import { User, Users, Wrench, Car, ClipboardList, FlaskConical, Map, UserCheck } from "lucide-react";
 import InvoiceForm from "./components/InvoiceForm";
 import InvoicePreview from "./components/InvoicePreview";
@@ -161,6 +161,7 @@ function AuthenticatedApp({ onLogout }) {
     dataEmissao: false, itens: false, orcamentoNumero: false, orcamentoValidade: false,
   });
   const [orcamentoScrollToError, setOrcamentoScrollToError] = useState(0);
+  const [singleDownloadEntry, setSingleDownloadEntry] = useState(null);
 
   const user = getCurrentUser();
 
@@ -217,6 +218,17 @@ function AuthenticatedApp({ onLogout }) {
       localStorage.setItem("fatura_simulacao_os", JSON.stringify(simulacaoOSData));
     } catch {}
   }, [simulacaoOSData]);
+
+  useLayoutEffect(() => {
+    if (singleDownloadEntry) {
+      const filename = (singleDownloadEntry.motorista || "OS").toUpperCase();
+      setTimeout(() => {
+        downloadInvoicePDF("os-single-invisible", filename, "l").finally(() => {
+          setSingleDownloadEntry(null);
+        });
+      }, 500);
+    }
+  }, [singleDownloadEntry]);
 
   // ---- FATURA LOGIC ----
   const total = useMemo(() => {
@@ -554,53 +566,7 @@ function AuthenticatedApp({ onLogout }) {
   };
 
   const handleDownloadSingleOS = (entry) => {
-    const fornecedor = escapeHTML(entry.fornecedor || "");
-    const empresa = data.empresa || {};
-    const html = `
-      <div class="os-paper landscape" style="width:1123px;margin:0;padding:0;font-family:Arial,sans-serif;">
-        <div class="os-header">
-          <div class="os-brand">
-            ${empresa.logo ? `<img src="${empresa.logo}" class="os-logo" alt="Logo" />` : ""}
-            <span class="os-company">${escapeHTML(empresa.nome || "SUA EMPRESA")} - Ordem de Serviço - ${fornecedor}</span>
-          </div>
-        </div>
-        <table class="os-table">
-          <thead><tr>
-            <th>Nº</th><th>DATA</th><th>HORA</th><th>VOO</th><th>SERVIÇO</th>
-            <th>GUIA/CONTATO</th><th>NOME PAX</th><th>PAX</th><th>CLIENTE</th>
-            <th>OBSERVAÇÃO</th><th>VEÍCULO</th><th>PLACA</th><th>MOTORISTA/CONTATO</th>
-          </tr></thead>
-          <tbody><tr class="os-data-row">
-            <td class="os-num">${escapeHTML(entry.numero) || "---"}</td>
-            <td>${escapeHTML(formatDateBR(entry.data))}</td>
-            <td>${escapeHTML(entry.hora) || "---"}</td>
-            <td>${escapeHTML(entry.voo) || "---"}</td>
-            <td class="os-wide-cell" style="white-space:pre-wrap">${escapeHTML(entry.servico) || "---"}</td>
-            <td style="white-space:nowrap">${escapeHTML(entry.nome_guia) || ""}${entry.tel_guia ? `<br/>${escapeHTML(entry.tel_guia)}` : ""}</td>
-            <td>${escapeHTML(entry.nome_pax) || "---"}</td>
-            <td class="os-pax">${escapeHTML(entry.pax) || "0"}</td>
-            <td>${escapeHTML(entry.cliente?.nome) || "---"}</td>
-            <td class="os-wide-cell os-obs-cell">${escapeHTML(entry.observacao) || "---"}</td>
-            <td>${escapeHTML(entry.veiculo) || "---"}</td>
-            <td>${escapeHTML(entry.placa) || "---"}</td>
-            <td style="white-space:nowrap">${escapeHTML(entry.motorista) || ""}${entry.contato_motorista ? `<br/>${escapeHTML(entry.contato_motorista)}` : ""}</td>
-          </tr></tbody>
-        </table>
-        <div class="os-footer"><p class="os-thanks">Obrigado pela preferência!</p></div>
-      </div>`;
-    const container = document.createElement("div");
-    container.id = "os-single-hidden";
-    container.style.cssText = "position:absolute;left:-9999px;top:0;width:1123px;";
-    container.innerHTML = html;
-    document.body.appendChild(container);
-    const filename = (entry.motorista || "OS").toUpperCase();
-    setTimeout(() => {
-      downloadInvoicePDF("os-single-hidden", filename, "l").finally(() => {
-        setTimeout(() => {
-          if (container.parentNode) document.body.removeChild(container);
-        }, 2000);
-      });
-    }, 100);
+    setSingleDownloadEntry(entry);
   };
 
   const handleBulkDownloadOS = async (selectedEntries) => {
@@ -640,7 +606,7 @@ function AuthenticatedApp({ onLogout }) {
           </tr>
         `).join("");
         const html = `
-          <div class="os-paper landscape" style="width:1123px;margin:0;padding:0;font-family:Arial,sans-serif;">
+          <div class="os-paper landscape">
             <div class="os-header">
               <div class="os-brand">
                 ${empresa.logo ? `<img src="${empresa.logo}" class="os-logo" alt="Logo" />` : ""}
@@ -660,7 +626,7 @@ function AuthenticatedApp({ onLogout }) {
         await new Promise((resolve) => {
           const container = document.createElement("div");
           container.id = "os-bulk-hidden";
-          container.style.cssText = "position:absolute;left:-9999px;top:0;width:1123px;";
+          container.style.cssText = "position:absolute;left:-9999px;top:0;";
           container.innerHTML = html;
           document.body.appendChild(container);
           setTimeout(() => {
@@ -1178,6 +1144,44 @@ function AuthenticatedApp({ onLogout }) {
           />
         ) : null}
       </main>
+
+      {singleDownloadEntry && (
+        <div style={{ position: "absolute", left: "-9999px", top: 0, width: "1123px" }}>
+          <div id="os-single-invisible" className="os-paper landscape" style={{ transform: "none" }}>
+            <div className="os-header">
+              <div className="os-brand">
+                {data.empresa.logo && <img src={data.empresa.logo} className="os-logo" alt="Logo" />}
+                <span className="os-company">{data.empresa.nome || "SUA EMPRESA"} - Ordem de Serviço - {(singleDownloadEntry.motorista || singleDownloadEntry.fornecedor || "").toUpperCase()}</span>
+              </div>
+            </div>
+            <table className="os-table">
+              <thead><tr>
+                <th>Nº</th><th>DATA</th><th>HORA</th><th>VOO</th><th>SERVIÇO</th>
+                <th>GUIA/CONTATO</th><th>NOME PAX</th><th>PAX</th><th>CLIENTE</th>
+                <th>OBSERVAÇÃO</th><th>VEÍCULO</th><th>PLACA</th><th>MOTORISTA/CONTATO</th>
+              </tr></thead>
+              <tbody>
+                <tr className="os-data-row">
+                  <td className="os-num">{singleDownloadEntry.numero || "---"}</td>
+                  <td>{formatDateBR(singleDownloadEntry.data)}</td>
+                  <td>{singleDownloadEntry.hora || "---"}</td>
+                  <td>{singleDownloadEntry.voo || "---"}</td>
+                  <td className="os-wide-cell" style={{ whiteSpace: "pre-wrap" }}>{singleDownloadEntry.servico || "---"}</td>
+                  <td style={{ whiteSpace: "nowrap" }}>{singleDownloadEntry.nome_guia || ""}{singleDownloadEntry.tel_guia ? <><br />{singleDownloadEntry.tel_guia}</> : ""}</td>
+                  <td>{singleDownloadEntry.nome_pax || "---"}</td>
+                  <td className="os-pax">{singleDownloadEntry.pax || "0"}</td>
+                  <td>{singleDownloadEntry.cliente?.nome || "---"}</td>
+                  <td className="os-wide-cell os-obs-cell">{singleDownloadEntry.observacao || "---"}</td>
+                  <td>{singleDownloadEntry.veiculo || "---"}</td>
+                  <td>{singleDownloadEntry.placa || "---"}</td>
+                  <td style={{ whiteSpace: "nowrap" }}>{singleDownloadEntry.motorista || ""}{singleDownloadEntry.contato_motorista ? <><br />{singleDownloadEntry.contato_motorista}</> : ""}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div className="os-footer"><p className="os-thanks">Obrigado pela preferência!</p></div>
+          </div>
+        </div>
+      )}
 
       <footer className="main-footer no-print">
         <div className="footer-content">
