@@ -1,0 +1,102 @@
+[
+  {
+    "produto": "Ônibus Executivo",
+    "descricao": "48 passageiros com ar-condicionado",
+    "valor": "1200"
+  },
+  {
+    "produto": "Van Executiva",
+    "descricao": "24 passageiros com bagageiro",
+    "valor": "750"
+  },
+  {
+    "produto": "Micro-ônibus",
+    "descricao": "32 passageiros",
+    "valor": "950"
+  },
+  {
+    "produto": "Carro Executivo",
+    "descricao": "4 passageiros sedan premium",
+    "valor": "350"
+  },
+  {
+    "produto": "Transfer Aeroporto",
+    "descricao": "Serviço ida e volta",
+    "valor": "450"
+  },
+  {
+    "produto": "Passeio Turístico",
+    "descricao": "City tour de 6 horas",
+    "valor": "1800"
+  },
+  {
+    "produto": "Fretamento Escolar",
+    "descricao": "Transporte mensal escolar",
+    "valor": "3200"
+  },
+  {
+    "produto": "Excursão Interestadual",
+    "descricao": "Viagem para até 48 passageiros",
+    "valor": "4500"
+  },
+  {
+    "produto": "Van Luxo",
+    "descricao": "18 passageiros com bancos reclináveis",
+    "valor": "980"
+  },
+  {
+    "produto": "Ônibus Leito",
+    "descricao": "42 passageiros leito turismo",
+    "valor": "5200"
+  },
+  {
+    "produto": "Transporte Corporativo",
+    "descricao": "Funcionários para eventos empresariais",
+    "valor": "2100"
+  },
+  {
+    "produto": "Serviço de Casamento",
+    "descricao": "Transporte para convidados",
+    "valor": "1600"
+  },
+  {
+    "produto": "Transfer Praia",
+    "descricao": "Viagem bate-volta",
+    "valor": "1300"
+  },
+  {
+    "produto": "Locação de Sprinter",
+    "descricao": "15 passageiros executiva",
+    "valor": "890"
+  },
+  {
+    "produto": "Tour Religioso",
+    "descricao": "Viagem para santuários",
+    "valor": "2700"
+  },
+  {
+    "produto": "Transporte Universitário",
+    "descricao": "Mensalidade universitária",
+    "valor": "480"
+  },
+  {
+    "produto": "Excursão Show/Eventos",
+    "descricao": "Transporte para eventos e shows",
+    "valor": "1450"
+  },
+  {
+    "produto": "Ônibus Double Deck",
+    "descricao": "56 passageiros dois andares",
+    "valor": "6800"
+  },
+  {
+    "produto": "Serviço VIP",
+    "descricao": "Motorista particular executivo",
+    "valor": "950"
+  },
+  {
+    "produto": "Passeio Escolar",
+    "descricao": "Excursão pedagógica",
+    "valor": "1750"
+  }
+]

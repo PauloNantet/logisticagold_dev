@@ -1,0 +1,46 @@
+/* THEME: LILAC - Dark UI + Lilac accents + Lilac paper */
+body[data-theme="lilac"] {
+  --primary: #d8b4fe;
+  --primary-hover: #e9d5ff;
+  --primary-dark: #c084fc;
+  --primary-glow: rgba(216, 180, 254, 0.15);
+  --primary-glow-strong: rgba(216, 180, 254, 0.3);
+  --border-active: rgba(216, 180, 254, 0.3);
+  --border-color: rgba(216, 180, 254, 0.15);
+  --input-border: rgba(216, 180, 254, 0.2);
+  --shadow-glow: 0 0 30px rgba(216, 180, 254, 0.15);
+}
+
+.invoice-paper.theme-lilac .invoice-header { border-bottom: 2px solid #c084fc !important; }
+.invoice-paper.theme-lilac .company-name,
+.invoice-paper.theme-lilac .document-title,
+.invoice-paper.theme-lilac .box-title { color: #c084fc !important; text-shadow: 0 0 8px rgba(192,132,252,0.4); }
+.invoice-paper.theme-lilac .thanks,
+.invoice-paper.theme-lilac .pix-title { color: #c084fc !important; text-shadow: 0 0 8px rgba(192,132,252,0.4); }
+.invoice-paper.theme-lilac .client-name,
+.invoice-paper.theme-lilac .responsible-name { color: #000000 !important; }
+.invoice-paper.theme-lilac .item-name,
+.invoice-paper.theme-lilac .info-value { color: #555555 !important; }
+.invoice-paper.theme-lilac .invoice-footer { border-top: 2px solid #c084fc !important; }
+.invoice-paper.theme-lilac .summary-rows,
+.invoice-paper.theme-lilac .total-main-row { border-top: 2px solid #c084fc !important; }
+.invoice-paper.theme-lilac .total-main-row .total-value { color: #c084fc !important; text-shadow: 0 0 8px rgba(192,132,252,0.4); }
+.invoice-paper.theme-lilac .invoice-table { border-collapse: collapse; }
+.invoice-paper.theme-lilac .invoice-table thead { background-color: #ffffff !important; }
+.invoice-paper.theme-lilac .invoice-table th { color: #c084fc !important; border: 2px solid #999999 !important; text-shadow: 0 0 8px rgba(192,132,252,0.4); }
+.invoice-paper.theme-lilac .invoice-table tbody { background-color: #ffffff !important; }
+.invoice-paper.theme-lilac .invoice-table td { border: 2px solid #999999 !important; color: #888888 !important; }
+.invoice-paper.theme-lilac .invoice-logo { border-color: #c084fc !important; border-width: 2px; box-shadow: 0 4px 15px rgba(192,132,252,0.3); }
+.invoice-paper.theme-lilac .client-box,
+.invoice-paper.theme-lilac .responsible-box,
+.invoice-paper.theme-lilac .pix-box,
+.invoice-paper.theme-lilac .obs-content { background-color: #ffffff !important; border: 2px solid #c084fc !important; box-shadow: 0 2px 12px rgba(192,132,252,0.15); }
+.invoice-paper.theme-lilac .obs-content { border-left-width: 6px !important; }
+.invoice-paper.theme-lilac .info-label,
+.invoice-paper.theme-lilac .total-main-row .total-label,
+.invoice-paper.theme-lilac .row-label { color: #555555 !important; }
+.invoice-paper.theme-lilac .client-data p,
+.invoice-paper.theme-lilac .responsible-data p { color: #000000 !important; }
+.invoice-paper.theme-lilac .pix-key,
+.invoice-paper.theme-lilac .row-value { color: #888888 !important; }
+.invoice-paper.theme-lilac .item-desc { color: #aaaaaa !important; }

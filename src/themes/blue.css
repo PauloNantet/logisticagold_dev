@@ -1,0 +1,46 @@
+/* THEME: BLUE - Dark UI + Blue accents + Blue paper */
+body[data-theme="blue"] {
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --primary-dark: #2563eb;
+  --primary-glow: rgba(59, 130, 246, 0.15);
+  --primary-glow-strong: rgba(59, 130, 246, 0.3);
+  --border-active: rgba(59, 130, 246, 0.3);
+  --border-color: rgba(59, 130, 246, 0.15);
+  --input-border: rgba(59, 130, 246, 0.2);
+  --shadow-glow: 0 0 30px rgba(59, 130, 246, 0.15);
+}
+
+.invoice-paper.theme-blue .invoice-header { border-bottom: 2px solid #2563eb !important; }
+.invoice-paper.theme-blue .company-name,
+.invoice-paper.theme-blue .document-title,
+.invoice-paper.theme-blue .box-title { color: #2563eb !important; text-shadow: 0 0 8px rgba(37,99,235,0.4); }
+.invoice-paper.theme-blue .thanks,
+.invoice-paper.theme-blue .pix-title { color: #2563eb !important; text-shadow: 0 0 8px rgba(37,99,235,0.4); }
+.invoice-paper.theme-blue .client-name,
+.invoice-paper.theme-blue .responsible-name { color: #000000 !important; }
+.invoice-paper.theme-blue .item-name,
+.invoice-paper.theme-blue .info-value { color: #555555 !important; }
+.invoice-paper.theme-blue .invoice-footer { border-top: 2px solid #2563eb !important; }
+.invoice-paper.theme-blue .summary-rows,
+.invoice-paper.theme-blue .total-main-row { border-top: 2px solid #2563eb !important; }
+.invoice-paper.theme-blue .total-main-row .total-value { color: #2563eb !important; text-shadow: 0 0 8px rgba(37,99,235,0.4); }
+.invoice-paper.theme-blue .invoice-table { border-collapse: collapse; }
+.invoice-paper.theme-blue .invoice-table thead { background-color: #ffffff !important; }
+.invoice-paper.theme-blue .invoice-table th { color: #2563eb !important; border: 2px solid #999999 !important; text-shadow: 0 0 8px rgba(37,99,235,0.4); }
+.invoice-paper.theme-blue .invoice-table tbody { background-color: #ffffff !important; }
+.invoice-paper.theme-blue .invoice-table td { border: 2px solid #999999 !important; color: #888888 !important; }
+.invoice-paper.theme-blue .invoice-logo { border-color: #2563eb !important; border-width: 2px; box-shadow: 0 4px 15px rgba(37,99,235,0.3); }
+.invoice-paper.theme-blue .client-box,
+.invoice-paper.theme-blue .responsible-box,
+.invoice-paper.theme-blue .pix-box,
+.invoice-paper.theme-blue .obs-content { background-color: #ffffff !important; border: 2px solid #2563eb !important; box-shadow: 0 2px 12px rgba(37,99,235,0.15); }
+.invoice-paper.theme-blue .obs-content { border-left-width: 6px !important; }
+.invoice-paper.theme-blue .info-label,
+.invoice-paper.theme-blue .total-main-row .total-label,
+.invoice-paper.theme-blue .row-label { color: #555555 !important; }
+.invoice-paper.theme-blue .client-data p,
+.invoice-paper.theme-blue .responsible-data p { color: #000000 !important; }
+.invoice-paper.theme-blue .pix-key,
+.invoice-paper.theme-blue .row-value { color: #888888 !important; }
+.invoice-paper.theme-blue .item-desc { color: #aaaaaa !important; }

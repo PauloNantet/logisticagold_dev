@@ -1,0 +1,242 @@
+[
+  {
+    "nome": "Carlos Eduardo Mendes",
+    "documento": "384.920.157-44",
+    "email": "carlos.mendes@gmail.com",
+    "endereco": "Rua das Palmeiras, 102",
+    "responsavelNome": "Carlos Eduardo",
+    "responsavelTelefone": "21 98123-4567"
+  },
+  {
+    "nome": "Fernanda Alves Rocha",
+    "documento": "592.814.763-10",
+    "email": "fernanda.rocha@hotmail.com",
+    "endereco": "Avenida Brasil, 455",
+    "responsavelNome": "Fernanda Alves",
+    "responsavelTelefone": "21 98234-5678"
+  },
+  {
+    "nome": "Lucas Henrique Costa",
+    "documento": "847.362.915-00",
+    "email": "lucas.costa@yahoo.com",
+    "endereco": "Rua São Jorge, 89",
+    "responsavelNome": "Lucas Henrique",
+    "responsavelTelefone": "21 98345-6789"
+  },
+  {
+    "nome": "Amanda Cristina Souza",
+    "documento": "125.638.974-22",
+    "email": "amanda.souza@gmail.com",
+    "endereco": "Travessa Central, 77",
+    "responsavelNome": "Amanda Cristina",
+    "responsavelTelefone": "21 98456-7890"
+  },
+  {
+    "nome": "Rafael Gomes Pereira",
+    "documento": "734.829.156-88",
+    "email": "rafael.pereira@outlook.com",
+    "endereco": "Rua do Comércio, 301",
+    "responsavelNome": "Rafael Gomes",
+    "responsavelTelefone": "21 98567-8901"
+  },
+  {
+    "nome": "Juliana Martins Lima",
+    "documento": "918.273.645-50",
+    "email": "juliana.lima@gmail.com",
+    "endereco": "Rua Bela Vista, 210",
+    "responsavelNome": "Juliana Martins",
+    "responsavelTelefone": "21 98678-9012"
+  },
+  {
+    "nome": "Thiago Oliveira Santos",
+    "documento": "564.738.291-44",
+    "email": "thiago.santos@hotmail.com",
+    "endereco": "Avenida Atlântica, 88",
+    "responsavelNome": "Thiago Oliveira",
+    "responsavelTelefone": "21 98789-0123"
+  },
+  {
+    "nome": "Patricia Fernandes Melo",
+    "documento": "345.678.912-55",
+    "email": "patricia.melo@yahoo.com",
+    "endereco": "Rua das Flores, 65",
+    "responsavelNome": "Patricia Fernandes",
+    "responsavelTelefone": "21 98890-1234"
+  },
+  {
+    "nome": "Bruno Henrique Silva",
+    "documento": "102.938.475-61",
+    "email": "bruno.silva@gmail.com",
+    "endereco": "Rua Primavera, 400",
+    "responsavelNome": "Bruno Henrique",
+    "responsavelTelefone": "21 98901-2345"
+  },
+  {
+    "nome": "Camila Rodrigues Nunes",
+    "documento": "908.172.635-49",
+    "email": "camila.nunes@outlook.com",
+    "endereco": "Avenida Rio Branco, 150",
+    "responsavelNome": "Camila Rodrigues",
+    "responsavelTelefone": "21 99012-3456"
+  },
+  {
+    "nome": "Gustavo Almeida Ribeiro",
+    "documento": "673.829.145-77",
+    "email": "gustavo.ribeiro@gmail.com",
+    "endereco": "Rua XV de Novembro, 32",
+    "responsavelNome": "Gustavo Almeida",
+    "responsavelTelefone": "21 99123-4567"
+  },
+  {
+    "nome": "Larissa Teixeira Campos",
+    "documento": "819.273.645-81",
+    "email": "larissa.campos@hotmail.com",
+    "endereco": "Rua Santa Clara, 19",
+    "responsavelNome": "Larissa Teixeira",
+    "responsavelTelefone": "21 99234-5678"
+  },
+  {
+    "nome": "Eduardo Barbosa Freitas",
+    "documento": "728.194.635-20",
+    "email": "eduardo.freitas@gmail.com",
+    "endereco": "Avenida Paulista, 900",
+    "responsavelNome": "Eduardo Barbosa",
+    "responsavelTelefone": "21 99345-6789"
+  },
+  {
+    "nome": "Vanessa Carvalho Pinto",
+    "documento": "384.756.192-10",
+    "email": "vanessa.pinto@yahoo.com",
+    "endereco": "Rua das Acácias, 71",
+    "responsavelNome": "Vanessa Carvalho",
+    "responsavelTelefone": "21 99456-7890"
+  },
+  {
+    "nome": "Felipe Andrade Lopes",
+    "documento": "192.837.465-00",
+    "email": "felipe.lopes@gmail.com",
+    "endereco": "Travessa das Pedras, 56",
+    "responsavelNome": "Felipe Andrade",
+    "responsavelTelefone": "21 99567-8901"
+  },
+  {
+    "nome": "Mariana Castro Vieira",
+    "documento": "918.273.640-11",
+    "email": "mariana.vieira@hotmail.com",
+    "endereco": "Rua da Paz, 144",
+    "responsavelNome": "Mariana Castro",
+    "responsavelTelefone": "21 99678-9012"
+  },
+  {
+    "nome": "Rodrigo Farias Cunha",
+    "documento": "475.869.213-54",
+    "email": "rodrigo.cunha@gmail.com",
+    "endereco": "Avenida Central, 580",
+    "responsavelNome": "Rodrigo Farias",
+    "responsavelTelefone": "21 99789-0123"
+  },
+  {
+    "nome": "Aline Moreira Duarte",
+    "documento": "837.261.945-88",
+    "email": "aline.duarte@outlook.com",
+    "endereco": "Rua dos Lírios, 23",
+    "responsavelNome": "Aline Moreira",
+    "responsavelTelefone": "21 99890-1234"
+  },
+  {
+    "nome": "Diego Matheus Lima",
+    "documento": "564.738.291-01",
+    "email": "diego.lima@gmail.com",
+    "endereco": "Rua Esperança, 201",
+    "responsavelNome": "Diego Matheus",
+    "responsavelTelefone": "21 99901-2345"
+  },
+  {
+    "nome": "Tatiane Ribeiro Gomes",
+    "documento": "374.829.156-77",
+    "email": "tatiane.gomes@yahoo.com",
+    "endereco": "Avenida das Nações, 600",
+    "responsavelNome": "Tatiane Ribeiro",
+    "responsavelTelefone": "21 99912-3456"
+  },
+  {
+    "nome": "Leonardo Vieira Souza",
+    "documento": "918.273.645-99",
+    "email": "leonardo.souza@gmail.com",
+    "endereco": "Rua Aurora, 74",
+    "responsavelNome": "Leonardo Vieira",
+    "responsavelTelefone": "21 99923-4567"
+  },
+  {
+    "nome": "Bianca Ferreira Costa",
+    "documento": "283.746.591-44",
+    "email": "bianca.costa@hotmail.com",
+    "endereco": "Rua Harmonia, 11",
+    "responsavelNome": "Bianca Ferreira",
+    "responsavelTelefone": "21 99934-5678"
+  },
+  {
+    "nome": "Henrique Barbosa Silva",
+    "documento": "102.938.475-66",
+    "email": "henrique.silva@gmail.com",
+    "endereco": "Travessa do Sol, 39",
+    "responsavelNome": "Henrique Barbosa",
+    "responsavelTelefone": "21 99945-6789"
+  },
+  {
+    "nome": "Renata Moura Alves",
+    "documento": "564.738.291-22",
+    "email": "renata.alves@outlook.com",
+    "endereco": "Rua Verde Mar, 510",
+    "responsavelNome": "Renata Moura",
+    "responsavelTelefone": "21 99956-7890"
+  },
+  {
+    "nome": "Anderson Nogueira Lima",
+    "documento": "918.273.645-70",
+    "email": "anderson.lima@yahoo.com",
+    "endereco": "Avenida Horizonte, 92",
+    "responsavelNome": "Anderson Nogueira",
+    "responsavelTelefone": "21 99967-8901"
+  },
+  {
+    "nome": "Priscila Mendes Rocha",
+    "documento": "475.869.213-33",
+    "email": "priscila.rocha@gmail.com",
+    "endereco": "Rua Monte Alegre, 73",
+    "responsavelNome": "Priscila Mendes",
+    "responsavelTelefone": "21 99978-9012"
+  },
+  {
+    "nome": "Vinicius Cardoso Freire",
+    "documento": "837.261.945-00",
+    "email": "vinicius.freire@hotmail.com",
+    "endereco": "Rua das Oliveiras, 250",
+    "responsavelNome": "Vinicius Cardoso",
+    "responsavelTelefone": "21 99989-0123"
+  },
+  {
+    "nome": "Elaine Tavares Pinto",
+    "documento": "374.829.156-90",
+    "email": "elaine.pinto@gmail.com",
+    "endereco": "Avenida Vitória, 700",
+    "responsavelNome": "Elaine Tavares",
+    "responsavelTelefone": "21 99990-1234"
+  },
+  {
+    "nome": "Samuel Rodrigues Melo",
+    "documento": "728.194.635-88",
+    "email": "samuel.melo@yahoo.com",
+    "endereco": "Rua Nova Esperança, 40",
+    "responsavelNome": "Samuel Rodrigues",
+    "responsavelTelefone": "21 99811-1222"
+  },
+  {
+    "nome": "Cristiane Lopes Martins",
+    "documento": "918.273.645-31",
+    "email": "cristiane.martins@gmail.com",
+    "endereco": "Travessa Imperial, 128",
+    "responsavelNome": "Cristiane Lopes",
+    "responsavelTelefone": "21 99822-2333"
+  }
+]
