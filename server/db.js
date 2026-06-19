@@ -1,11 +1,9 @@
 import pg from "pg";
 const { Pool } = pg;
 
-const useSSL = process.env.DATABASE_SSL === "true" || process.env.NODE_ENV === "production" && !process.env.DATABASE_URL?.includes("proxy.rlwy.net");
-
 const pool = new Pool({
   connectionString: process.env.DATABASE_PRIVATE_URL || process.env.DATABASE_URL,
-  ssl: useSSL ? { rejectUnauthorized: false } : false,
+  ssl: process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false } : false,
 });
 
 async function initDB() {
