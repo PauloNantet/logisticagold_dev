@@ -485,7 +485,10 @@ function AuthenticatedApp({ onLogout }) {
   };
 
   const handleOSDownload = () => {
-    const filename = `OS ${new Date().toLocaleDateString("pt-BR")}`;
+    const first = osPreviewEntries[0] || {};
+    const filename = osPreviewSource === "single"
+      ? (first.motorista || "OS").toUpperCase()
+      : (first.fornecedor || "OS").toUpperCase();
     if (osIsLocked) {
       downloadInvoicePDF("mapa-servico", filename, "l");
       return;
@@ -1087,6 +1090,10 @@ function AuthenticatedApp({ onLogout }) {
               setOsPreviewSource(null);
             }}
             isOS={true}
+            headerName={osPreviewSource === "single"
+              ? (osPreviewEntries[0]?.motorista || "").toUpperCase()
+              : (osPreviewEntries[0]?.fornecedor || "").toUpperCase()
+            }
           />
         ) : activeTab === "ordem-servico" ? (
           <ServiceOrderForm
@@ -1136,6 +1143,7 @@ function AuthenticatedApp({ onLogout }) {
               }}
               onBackToHistory={() => {}}
               isOS={true}
+              headerName={(hiddenOSDownload.motorista || "").toUpperCase()}
               autoDownload={true}
               onAutoDownloadDone={() => {}}
             />

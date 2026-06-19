@@ -1,8 +1,9 @@
 import { useLayoutEffect, useRef, useState, useEffect } from "react";
 import { formatDateBR } from "../utils/formatters";
 
-export default function MapaServicoPreview({ entries, empresa, showFinanceiro, isLocked, onBack, onDownload, onBackToHistory, isOS, autoDownload, onAutoDownloadDone }) {
+export default function MapaServicoPreview({ entries, empresa, showFinanceiro, isLocked, onBack, onDownload, onBackToHistory, isOS, autoDownload, onAutoDownloadDone, headerName }) {
   const fornecedor = entries[0]?.fornecedor || "";
+  const displayName = headerName || fornecedor;
   const wrapperRef = useRef(null);
   const mapaRef = useRef(null);
   const downloadBtnRef = useRef(null);
@@ -75,7 +76,7 @@ export default function MapaServicoPreview({ entries, empresa, showFinanceiro, i
               {empresa.logo && (
                 <img src={empresa.logo} className="os-logo" alt="Logo" />
               )}
-              <span className="os-company">{empresa.nome || "SUA EMPRESA"}{isOS ? ` - Ordem de Serviço - ${fornecedor}` : " - MAPA DE SERVIÇO"}</span>
+              <span className="os-company">{empresa.nome || "SUA EMPRESA"}{isOS ? ` - Ordem de Serviço - ${displayName}` : " - MAPA DE SERVIÇO"}</span>
             </div>
           </div>
 
