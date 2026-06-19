@@ -496,7 +496,8 @@ function AuthenticatedApp({ onLogout }) {
   };
 
   const handleOSDownload = () => {
-    const filename = `OS ${new Date().toLocaleDateString("pt-BR")}`;
+    const fornecedores = [...new Set(osPreviewEntries.map(e => e.fornecedor).filter(Boolean))];
+    const filename = fornecedores.join(", ") || "OS";
     if (osIsLocked) {
       downloadInvoicePDF("mapa-servico", filename, "l");
       return;
